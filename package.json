@@ -23,6 +23,7 @@
 	"dependencies": {
 		"@tailwindcss/vite": "^4.3.5",
 		"axios": "^1.21.0",
+		"flag-icons": "^7.6.0",
 		"tailwindcss": "^4.3.5"
 	}
 }
