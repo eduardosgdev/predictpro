@@ -1,7 +1,7 @@
 
 <script>
 // @ts-nocheck
-
+    import NavBar from "#lib/components/NavBar.svelte";
     let { data } = $props();
 
     let partidos = $derived(data.partidos ?? []);
@@ -326,9 +326,9 @@
     }
 </script>
 
-
+<NavBar />
 <section class="min-h-screen bg-[#0b1117] text-white p-6">
-   
+    
     <div class="max-w-7xl mx-auto">
 
         <!-- CABECERA -->
@@ -860,7 +860,7 @@
     </div>
     <!-- PLANTILLA DE JUGADORES -->
 <!-- PLANTILLA DE JUGADORES -->
-<section class="mt-12">
+<section class="mt-12 p-16">
 
     <!-- CABECERA -->
     <div class="flex flex-col md:flex-row md:items-end justify-between mb-7 gap-3">

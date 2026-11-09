@@ -1,22 +1,29 @@
 
 <script>
     // @ts-nocheck
-    
+    import "#lib/styles/pronostico.css";
     import matchTeam from "../../conexiones/matchAxios.js";
     import playerTeam from "../../conexiones/playerAxios.js";
-    
+    import NavBar from "#lib/components/NavBar.svelte";
     import {
     normalizarHistorial,
     analizarContraCincoEstrellas,
-    analizarComportamientoPorEstilo
+    analizarComportamientoPorEstilo,
+    analizarEnfrentamiento
 } from "#lib/utils/analisisEquipos.js";
     
     let { data } = $props();
-    
+    let pronostico = $state(null);
     // ==========================================
     // 1. EQUIPOS RECIBIDOS DESDE +page.js
     // ==========================================
-    
+    let equipoLocalCompleto = $derived(
+    equipos.find(e => String(e._id) === String(equipoLocal))
+        );
+
+        let equipoVisitanteCompleto = $derived(
+            equipos.find(e => String(e._id) === String(equipoVisitante))
+);
     let equipos = $derived(data.teams ?? []);
     
     // ==========================================
@@ -159,177 +166,247 @@
     // ==========================================
     // 13. OBTENER DATOS DE LA COMPARATIVA
     // ==========================================
-    
-    async function obtenerDatosComparativa() {
-        
-        if (!equipoLocal || !equipoVisitante) {
-            errorAnalisis = "Selecciona los dos equipos.";
-            return;
-        }
-    
-        if (equipoLocal === equipoVisitante) {
-            errorAnalisis = "No puedes seleccionar el mismo equipo.";
-            return;
-        }
-    
-        try {
-    
-            cargandoAnalisis = true;
-            errorAnalisis = "";
-    
-            // ==========================================
-            // LIMPIAR INFORMACIÓN ANTERIOR
-            // ==========================================
-    
-            historialLocal = [];
-            historialVisitante = [];
-    
-            jugadoresLocal = [];
-            jugadoresVisitante = [];
-    
-            historialNormalizadoLocal = [];
-            historialNormalizadoVisitante = [];
-    
-            analisisLocal = null;
-            analisisVisitante = null;
-    
-            estilosLocal = [];
-            estilosVisitante = [];
+        function formatoEstilo(valor) {
+        if (!valor) return "Sin especificar";
 
-            historialLocal = [];
-            historialVisitante = [];
-
-            jugadoresLocal = [];
-            jugadoresVisitante = [];
-
-            historialNormalizadoLocal = [];
-            historialNormalizadoVisitante = [];
-
-            analisisLocal = null;
-            analisisVisitante = null;
-
-            cincoEstrellasLocal = null;
-            cincoEstrellasVisitante = null;
-
-            estilosLocal = [];
-            estilosVisitante = [];
-    
-            // ==========================================
-            // PETICIONES AL BACKEND
-            // ==========================================
-    
-            const [
-                partidosLocal,
-                partidosVisitante,
-                jugadoresEquipoLocal,
-                jugadoresEquipoVisitante
-            ] = await Promise.all([
-    
-                matchTeam.get(`/${equipoLocal}`),
-                matchTeam.get(`/${equipoVisitante}`),
-    
-                playerTeam.get(`/${equipoLocal}`),
-                playerTeam.get(`/${equipoVisitante}`)
-    
-            ]);
-    
-            // ==========================================
-            // RECUPERAR HISTORIALES
-            // ==========================================
-    
-            historialLocal = Array.isArray(partidosLocal.data)
-                ? partidosLocal.data
-                : [];
-    
-            historialVisitante = Array.isArray(partidosVisitante.data)
-                ? partidosVisitante.data
-                : [];
-    
-            console.log("TOTAL PARTIDOS LOCAL:", historialLocal.length);
-            console.log("TOTAL PARTIDOS VISITANTE:", historialVisitante.length);
-    
-            // ==========================================
-            // RECUPERAR JUGADORES
-            // ==========================================
-    
-            jugadoresLocal =
-                jugadoresEquipoLocal.data.players ?? [];
-    
-            jugadoresVisitante =
-                jugadoresEquipoVisitante.data.players ?? [];
-    
-            // ==========================================
-            // NORMALIZAR HISTORIAL LOCAL
-            // ==========================================
-    
-            historialNormalizadoLocal = normalizarHistorial(
-                historialLocal,
-                equipoLocal
-            );
-    
-            // ==========================================
-            // NORMALIZAR HISTORIAL VISITANTE
-            // ==========================================
-    
-            historialNormalizadoVisitante = normalizarHistorial(
-                historialVisitante,
-                equipoVisitante
-            );
-    
-            console.log(
-                "HISTORIAL NORMALIZADO LOCAL:",
-                historialNormalizadoLocal
-            );
-    
-            console.log(
-                "HISTORIAL NORMALIZADO VISITANTE:",
-                historialNormalizadoVisitante
-            );
-    
-            // ==========================================
-            // ANALIZAR CONTRA EQUIPOS DE 5 ESTRELLAS
-            // ==========================================
-    
-            analisisLocal = analizarContraCincoEstrellas(
-                historialNormalizadoLocal
-            );
-    
-            analisisVisitante = analizarContraCincoEstrellas(
-                historialNormalizadoVisitante
-            );
-    
-            // ==========================================
-            // ANALIZAR ESTILOS DE LOS RIVALES
-            // ==========================================
-    
-                
-            // ==========================================
-            // RESULTADOS FINALES
-            // ==========================================
-    
-            console.log("ANÁLISIS LOCAL:", analisisLocal);
-            console.log("ANÁLISIS VISITANTE:", analisisVisitante);
-    
-            console.log("ESTILOS LOCAL:", estilosLocal);
-            console.log("ESTILOS VISITANTE:", estilosVisitante);
-    
-        } catch (error) {
-    
-            console.error(
-                "Error al obtener los datos:",
-                error.response?.data || error.message
-            );
-    
-            errorAnalisis = "No se pudieron obtener los datos de los equipos.";
-    
-        } finally {
-    
-            cargandoAnalisis = false;
-    
-        }
+        return valor
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, letra => letra.toUpperCase());
     }
-    </script>
-    
+
+        function resumenEstadisticas(grupo) {
+
+            if (!grupo || grupo.total === 0) {
+                return "Sin datos suficientes";
+            }
+
+            const { resultados, goles, corners } = grupo;
+
+            return [
+                `PJ: ${grupo.total}`,
+                `V-E-D: ${resultados.victorias}-${resultados.empates}-${resultados.derrotas}`,
+                `Goles F/C: ${goles.promedioFavor.toFixed(2)} / ${goles.promedioContra.toFixed(2)}`,
+                `Córners F/C: ${corners.promedioFavor.toFixed(2)} / ${corners.promedioContra.toFixed(2)}`,
+                `% Victorias: ${grupo.porcentajeVictorias.toFixed(1)}%`
+            ].join(" · ");
+        }
+
+        function obtenerEstilosEquipo(historial) {
+            const partido = historial?.[0];
+
+            if (!partido) return null;
+
+            return {
+                ofensivo: partido.estiloOfensivoPropio,
+                defensivo: partido.estiloDefensivoPropio
+            };
+        }
+   
+async function obtenerDatosComparativa() {
+
+if (!equipoLocal || !equipoVisitante) {
+    errorAnalisis = "Selecciona los dos equipos.";
+    return;
+}
+
+if (equipoLocal === equipoVisitante) {
+    errorAnalisis = "No puedes seleccionar el mismo equipo.";
+    return;
+}
+
+try {
+
+    cargandoAnalisis = true;
+    errorAnalisis = "";
+
+    // ==========================================
+    // LIMPIAR INFORMACIÓN ANTERIOR
+    // ==========================================
+
+    historialLocal = [];
+    historialVisitante = [];
+
+    jugadoresLocal = [];
+    jugadoresVisitante = [];
+
+    historialNormalizadoLocal = [];
+    historialNormalizadoVisitante = [];
+
+    analisisLocal = null;
+    analisisVisitante = null;
+
+    cincoEstrellasLocal = null;
+    cincoEstrellasVisitante = null;
+
+    estilosLocal = [];
+    estilosVisitante = [];
+
+    pronostico = null;
+
+    // ==========================================
+    // PETICIONES AL BACKEND
+    // ==========================================
+
+    const [
+        partidosLocal,
+        partidosVisitante,
+        jugadoresEquipoLocal,
+        jugadoresEquipoVisitante
+    ] = await Promise.all([
+
+        matchTeam.get(`/${equipoLocal}`),
+        matchTeam.get(`/${equipoVisitante}`),
+
+        playerTeam.get(`/${equipoLocal}`),
+        playerTeam.get(`/${equipoVisitante}`)
+
+    ]);
+
+    // ==========================================
+    // RECUPERAR HISTORIALES
+    // ==========================================
+
+    historialLocal = Array.isArray(partidosLocal.data)
+        ? partidosLocal.data
+        : [];
+
+    historialVisitante = Array.isArray(partidosVisitante.data)
+        ? partidosVisitante.data
+        : [];
+
+    console.log("TOTAL PARTIDOS LOCAL:", historialLocal.length);
+    console.log("TOTAL PARTIDOS VISITANTE:", historialVisitante.length);
+
+    // ==========================================
+    // RECUPERAR JUGADORES
+    // ==========================================
+
+    jugadoresLocal =
+        jugadoresEquipoLocal.data.players ?? [];
+
+    jugadoresVisitante =
+        jugadoresEquipoVisitante.data.players ?? [];
+
+    // ==========================================
+    // NORMALIZAR HISTORIAL LOCAL
+    // ==========================================
+
+    historialNormalizadoLocal = normalizarHistorial(
+        historialLocal,
+        equipoLocal
+    );
+
+    // ==========================================
+    // NORMALIZAR HISTORIAL VISITANTE
+    // ==========================================
+
+    historialNormalizadoVisitante = normalizarHistorial(
+        historialVisitante,
+        equipoVisitante
+    );
+
+    // ==========================================
+    // ANALIZAR COMPORTAMIENTO POR ESTILOS
+    // ==========================================
+
+    analisisLocal = analizarComportamientoPorEstilo(
+        historialNormalizadoLocal
+    );
+
+    analisisVisitante = analizarComportamientoPorEstilo(
+        historialNormalizadoVisitante
+    );
+
+    // ==========================================
+    // ANALIZAR CONTRA EQUIPOS DE 5 ESTRELLAS
+    // ==========================================
+
+    cincoEstrellasLocal = analizarContraCincoEstrellas(
+        historialNormalizadoLocal
+    );
+
+    cincoEstrellasVisitante = analizarContraCincoEstrellas(
+        historialNormalizadoVisitante
+    );
+
+    // ==========================================
+    // OBTENER ESTILOS PROPIOS DE CADA EQUIPO
+    // ==========================================
+
+    const estilosLocalPartido = obtenerEstilosEquipo(
+        historialNormalizadoLocal
+    );
+
+    const estilosVisitantePartido = obtenerEstilosEquipo(
+        historialNormalizadoVisitante
+    );
+
+    console.log("ESTILOS LOCAL:", estilosLocalPartido);
+    console.log("ESTILOS VISITANTE:", estilosVisitantePartido);
+
+    // ==========================================
+    // GENERAR PRONÓSTICO DEL ENFRENTAMIENTO
+    // ==========================================
+
+    if (
+    estilosLocalPartido?.ofensivo &&
+    estilosLocalPartido?.defensivo &&
+    estilosVisitantePartido?.ofensivo &&
+    estilosVisitantePartido?.defensivo
+) {
+    pronostico = analizarEnfrentamiento(
+        historialNormalizadoLocal,
+        historialNormalizadoVisitante,
+        estilosLocalPartido,
+        estilosVisitantePartido
+    );
+
+    console.log("PRONÓSTICO FINAL:", pronostico);
+
+} else {
+    pronostico = null;
+
+    console.error("Faltan datos de estilos:", {
+        local: estilosLocalPartido,
+        visitante: estilosVisitantePartido
+    });
+}
+
+} catch (error) {
+
+    console.error(
+        "Error al obtener los datos:",
+        error.response?.data || error.message
+    );
+
+    errorAnalisis = "No se pudieron obtener los datos de los equipos.";
+
+} finally {
+
+    cargandoAnalisis = false;
+
+}
+}
+function porcentaje(valor) {
+    if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) {
+        return 0;
+    }
+
+    const numero = Number(valor);
+    return Math.max(0, Math.min(100, numero <= 1 ? numero * 100 : numero));
+}
+
+function formatoPorcentaje(valor) {
+    return `${porcentaje(valor).toFixed(1)}%`;
+}
+
+function formatoNumero(valor) {
+    const numero = Number(valor ?? 0);
+    return Number.isFinite(numero) ? numero.toFixed(2) : "0.00";
+}
+
+</script>
+<NavBar />
 <section class="min-h-screen bg-[#0b1117] text-white p-6">
 
     <!-- CABECERA -->
@@ -573,5 +650,424 @@
         </button>
 
     </div>
+    {#if pronostico?.disponible}
+        <section class="pronostico-panel">
+
+            <div class="pronostico-header">
+                <div>
+                    <span class="pronostico-etiqueta">PREDICTPRO · ANÁLISIS</span>
+                    <h2>Pronóstico del encuentro</h2>
+                    <p>Estimaciones basadas en el comportamiento histórico de ambos equipos.</p>
+                </div>
+                <div class="estado-pronostico">
+                    <span></span>
+                    Análisis disponible
+                </div>
+            </div>
+
+            <!-- MUESTRA HISTÓRICA -->
+            <div class="pronostico-muestras">
+                <div class="muestra-equipo local">
+                    <span>Partidos analizados · Local</span>
+                    <strong>{pronostico.muestra.local}</strong>
+                </div>
+
+                <div class="muestra-equipo visitante">
+                    <span>Partidos analizados · Visitante</span>
+                    <strong>{pronostico.muestra.visitante}</strong>
+                </div>
+            </div>
+
+            <!-- PROBABILIDADES 1X2 -->
+            <div class="pronostico-card">
+                <h3>Probabilidades del resultado</h3>
+
+                <div class="resultado-probabilidades">
+
+                    <div class="probabilidad-item">
+                        <div class="probabilidad-info">
+                            <span>Victoria local</span>
+                            <strong>{formatoPorcentaje(pronostico.probabilidades.victoriaLocal)}</strong>
+                        </div>
+                        <div class="barra-fondo">
+                            <div
+                                class="barra-progreso barra-local"
+                                style={`width: ${porcentaje(pronostico.probabilidades.victoriaLocal)}%`}
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div class="probabilidad-item">
+                        <div class="probabilidad-info">
+                            <span>Empate</span>
+                            <strong>{formatoPorcentaje(pronostico.probabilidades.empate)}</strong>
+                        </div>
+                        <div class="barra-fondo">
+                            <div
+                                class="barra-progreso barra-empate"
+                                style={`width: ${porcentaje(pronostico.probabilidades.empate)}%`}
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div class="probabilidad-item">
+                        <div class="probabilidad-info">
+                            <span>Victoria visitante</span>
+                            <strong>{formatoPorcentaje(pronostico.probabilidades.victoriaVisitante)}</strong>
+                        </div>
+                        <div class="barra-fondo">
+                            <div
+                                class="barra-progreso barra-visitante"
+                                style={`width: ${porcentaje(pronostico.probabilidades.victoriaVisitante)}%`}
+                            ></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- GOLES Y CÓRNERS -->
+            <div class="pronostico-grid">
+
+                <div class="pronostico-card">
+                    <h3><span>⚽</span> Goles esperados</h3>
+
+                    <div class="comparativa-valores">
+                        <div class="valor-equipo">
+                            <span>Local</span>
+                            <strong class="texto-local">
+                                {formatoNumero(pronostico.goles.local)}
+                            </strong>
+                        </div>
+
+                        <div class="valor-total">
+                            <span>Total estimado</span>
+                            <strong>{formatoNumero(pronostico.goles.total)}</strong>
+                        </div>
+
+                        <div class="valor-equipo">
+                            <span>Visitante</span>
+                            <strong class="texto-visitante">
+                                {formatoNumero(pronostico.goles.visitante)}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pronostico-card">
+                    <h3><span>🚩</span> Córners esperados</h3>
+
+                    <div class="comparativa-valores">
+                        <div class="valor-equipo">
+                            <span>Local</span>
+                            <strong class="texto-local">
+                                {formatoNumero(pronostico.corners.local)}
+                            </strong>
+                        </div>
+
+                        <div class="valor-total">
+                            <span>Total estimado</span>
+                            <strong>{formatoNumero(pronostico.corners.total)}</strong>
+                        </div>
+
+                        <div class="valor-equipo">
+                            <span>Visitante</span>
+                            <strong class="texto-visitante">
+                                {formatoNumero(pronostico.corners.visitante)}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- MERCADOS DE GOLES -->
+            <div class="pronostico-card">
+                <h3>Mercados de goles</h3>
+
+                <div class="mercados-grid">
+                    <div class="mercado-item">
+                        <span>Más de 2.5 goles</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.masDe25Goles)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Ambos equipos marcan</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.ambosMarcan)}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MERCADOS DE CÓRNERS -->
+            <div class="pronostico-card">
+                <h3>Mercados de córners</h3>
+
+                <div class="mercados-grid">
+                    <div class="mercado-item">
+                        <span>Más de 7.5</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe75)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Más de 8.5</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe85)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Más de 9.5</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe95)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Más de 10.5</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe105)}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <p class="pronostico-nota">
+                Las probabilidades son estimaciones estadísticas basadas en el historial disponible.
+                No garantizan el resultado del encuentro.
+            </p>
+
+        </section>
+    {/if}
+
+    {#if analisisLocal && analisisVisitante}
+
+    <div class="max-w-6xl mx-auto mt-16 space-y-10">
+
+        <!-- CABECERA DE RESULTADOS -->
+        <div class="border-b border-white/10 pb-6">
+
+            <span class="text-[#00ff66] text-xs font-bold tracking-[3px]">
+                PREDICTPRO / RESULTADOS ESTADÍSTICOS
+            </span>
+
+            <h2 class="text-2xl md:text-3xl font-black mt-3">
+                Comparativa de comportamiento
+            </h2>
+
+            <p class="text-gray-500 text-sm mt-2">
+                Análisis histórico según los estilos de juego de los rivales.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+
+                <div class="bg-[#111a22] border border-[#00ff66]/30 rounded-xl p-4">
+                    <p class="text-xs text-[#00ff66] font-bold">
+                        EQUIPO 01
+                    </p>
+                    <h3 class="font-black mt-1">
+                        {equipoLocalSeleccionado?.nombre}
+                    </h3>
+                    <p class="text-gray-500 text-xs mt-2">
+                        {analisisLocal.totalPartidos} partidos analizados
+                    </p>
+                </div>
+
+                <div class="bg-[#111a22] border border-blue-400/30 rounded-xl p-4">
+                    <p class="text-xs text-blue-400 font-bold">
+                        EQUIPO 02
+                    </p>
+                    <h3 class="font-black mt-1">
+                        {equipoVisitanteSeleccionado?.nombre}
+                    </h3>
+                    <p class="text-gray-500 text-xs mt-2">
+                        {analisisVisitante.totalPartidos} partidos analizados
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- 1. ANÁLISIS POR DEFENSA RIVAL -->
+        <section class="bg-[#111a22] border border-white/10 rounded-2xl p-5 md:p-6">
+
+            <div class="mb-6">
+                <span class="text-[#00ff66] text-xs font-bold tracking-widest">
+                    ANÁLISIS 01
+                </span>
+
+                <h3 class="text-xl font-black mt-2">
+                    Contra estilos defensivos
+                </h3>
+
+                <p class="text-gray-500 text-xs mt-2">
+                    Comportamiento frente a la forma de defender del rival.
+                </p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[650px] text-sm text-left">
+
+                    <thead>
+                        <tr class="text-gray-400 border-b border-white/10">
+                            <th class="py-4 pr-4">Defensa rival</th>
+                            <th class="py-4 px-4 text-[#00ff66]">
+                                {equipoLocalSeleccionado?.nombre}
+                            </th>
+                            <th class="py-4 px-4 text-blue-400">
+                                {equipoVisitanteSeleccionado?.nombre}
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {#each analisisLocal.porEstiloDefensivoRival as grupo, i}
+                            <tr class="border-b border-white/5">
+
+                                <td class="py-5 pr-4 font-bold">
+                                    {formatoEstilo(grupo.estilo)}
+                                </td>
+
+                                <td class="py-5 px-4 text-gray-300 text-xs leading-6">
+                                    {resumenEstadisticas(grupo)}
+                                </td>
+
+                                <td class="py-5 px-4 text-gray-300 text-xs leading-6">
+                                    {resumenEstadisticas(
+                                        analisisVisitante.porEstiloDefensivoRival[i]
+                                    )}
+                                </td>
+
+                            </tr>
+                        {/each}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </section>
+
+
+        <!-- 2. ANÁLISIS POR ATAQUE RIVAL -->
+        <section class="bg-[#111a22] border border-white/10 rounded-2xl p-5 md:p-6">
+
+            <div class="mb-6">
+                <span class="text-blue-400 text-xs font-bold tracking-widest">
+                    ANÁLISIS 02
+                </span>
+
+                <h3 class="text-xl font-black mt-2">
+                    Contra estilos ofensivos
+                </h3>
+
+                <p class="text-gray-500 text-xs mt-2">
+                    Comportamiento frente a las diferentes formas de atacar del rival.
+                </p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[650px] text-sm text-left">
+
+                    <thead>
+                        <tr class="text-gray-400 border-b border-white/10">
+                            <th class="py-4 pr-4">Ataque rival</th>
+                            <th class="py-4 px-4 text-[#00ff66]">
+                                {equipoLocalSeleccionado?.nombre}
+                            </th>
+                            <th class="py-4 px-4 text-blue-400">
+                                {equipoVisitanteSeleccionado?.nombre}
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {#each analisisLocal.porEstiloOfensivoRival as grupo, i}
+                            <tr class="border-b border-white/5">
+
+                                <td class="py-5 pr-4 font-bold">
+                                    {formatoEstilo(grupo.estilo)}
+                                </td>
+
+                                <td class="py-5 px-4 text-gray-300 text-xs leading-6">
+                                    {resumenEstadisticas(grupo)}
+                                </td>
+
+                                <td class="py-5 px-4 text-gray-300 text-xs leading-6">
+                                    {resumenEstadisticas(
+                                        analisisVisitante.porEstiloOfensivoRival[i]
+                                    )}
+                                </td>
+
+                            </tr>
+                        {/each}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </section>
+
+
+        <!-- 3. ANÁLISIS POR COMBINACIÓN -->
+        <section class="bg-[#111a22] border border-white/10 rounded-2xl p-5 md:p-6">
+
+            <div class="mb-6">
+                <span class="text-purple-400 text-xs font-bold tracking-widest">
+                    ANÁLISIS 03
+                </span>
+
+                <h3 class="text-xl font-black mt-2">
+                    Combinaciones de estilos
+                </h3>
+
+                <p class="text-gray-500 text-xs mt-2">
+                    Análisis de las 12 combinaciones ofensivas y defensivas posibles.
+                </p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[750px] text-sm text-left">
+
+                    <thead>
+                        <tr class="text-gray-400 border-b border-white/10">
+                            <th class="py-4 pr-4">Ataque rival</th>
+                            <th class="py-4 px-4">Defensa rival</th>
+                            <th class="py-4 px-4 text-[#00ff66]">
+                                {equipoLocalSeleccionado?.nombre}
+                            </th>
+                            <th class="py-4 px-4 text-blue-400">
+                                {equipoVisitanteSeleccionado?.nombre}
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {#each analisisLocal.porCombinacionRival as grupo, i}
+                            <tr class="border-b border-white/5">
+
+                                <td class="py-4 pr-4 font-semibold">
+                                    {formatoEstilo(grupo.estiloOfensivo)}
+                                </td>
+
+                                <td class="py-4 px-4 font-semibold">
+                                    {formatoEstilo(grupo.estiloDefensivo)}
+                                </td>
+
+                                <td class="py-4 px-4 text-gray-300 text-xs leading-6">
+                                    {resumenEstadisticas(grupo)}
+                                </td>
+
+                                <td class="py-4 px-4 text-gray-300 text-xs leading-6">
+                                    {resumenEstadisticas(
+                                        analisisVisitante.porCombinacionRival[i]
+                                    )}
+                                </td>
+
+                            </tr>
+                        {/each}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </section>
+
+    </div>
+
+    {/if}
 
 </section>

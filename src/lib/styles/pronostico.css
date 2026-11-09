@@ -1,0 +1,360 @@
+
+.pronostico-panel {
+    --verde: #00ef82;
+    --azul: #42a5ff;
+    --fondo: #080e15;
+    --tarjeta: #101a25;
+    --borde: rgba(255,255,255,.07);
+
+    background:
+        radial-gradient(ellipse at 5% 0%, rgba(0,239,130,.08), transparent 35%),
+        radial-gradient(ellipse at 95% 0%, rgba(66,165,255,.08), transparent 35%),
+        var(--fondo);
+    color: #f1f5f9;
+    padding: 30px;
+    border: 1px solid var(--borde);
+    border-radius: 22px;
+    margin-top: 35px;
+    box-shadow: 0 15px 45px rgba(0,0,0,.25);
+}
+
+/* CABECERA */
+
+.pronostico-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.pronostico-etiqueta {
+    display: inline-block;
+    color: var(--verde);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2.5px;
+    margin-bottom: 8px;
+}
+
+.pronostico-header h2 {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 900;
+    letter-spacing: -.8px;
+    margin: 0 0 8px;
+}
+
+.pronostico-header p {
+    color: #8191a1;
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.estado-pronostico {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: rgba(0,239,130,.08);
+    border: 1px solid rgba(0,239,130,.2);
+    color: var(--verde);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 10px 14px;
+    border-radius: 30px;
+}
+
+.estado-pronostico span {
+    width: 7px;
+    height: 7px;
+    background: var(--verde);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--verde);
+}
+
+/* TARJETAS */
+
+.pronostico-card,
+.muestra-equipo {
+    background: linear-gradient(145deg, #14212d, #0e1721);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 23px;
+    transition: border-color .25s, transform .25s;
+}
+
+.pronostico-card:hover {
+    border-color: rgba(0,239,130,.25);
+    transform: translateY(-2px);
+}
+
+.pronostico-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 850;
+    margin: 0 0 24px;
+    color: #e8f0f7;
+}
+
+/* MUESTRA HISTÓRICA */
+
+.pronostico-muestras {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.muestra-equipo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.muestra-equipo span {
+    color: #94a3b2;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.muestra-equipo strong {
+    font-size: 27px;
+    font-weight: 900;
+}
+
+.muestra-equipo.local {
+    border-left: 3px solid var(--verde);
+}
+
+.muestra-equipo.local strong,
+.texto-local {
+    color: var(--verde);
+}
+
+.muestra-equipo.visitante {
+    border-left: 3px solid var(--azul);
+}
+
+.muestra-equipo.visitante strong,
+.texto-visitante {
+    color: var(--azul);
+}
+
+/* PROBABILIDADES */
+
+.resultado-probabilidades {
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+}
+
+.probabilidad-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.probabilidad-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.probabilidad-info span {
+    color: #b3c0cd;
+    font-weight: 600;
+}
+
+.probabilidad-info strong {
+    font-size: 17px;
+    font-weight: 900;
+    color: white;
+    font-variant-numeric: tabular-nums;
+}
+
+.barra-fondo {
+    height: 11px;
+    background: #253442;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.barra-progreso {
+    height: 100%;
+    border-radius: 20px;
+    transition: width .7s ease;
+}
+
+.barra-local {
+    background: linear-gradient(90deg, #00a95b, #00ff9d);
+    box-shadow: 0 0 15px rgba(0,239,130,.3);
+}
+
+.barra-empate {
+    background: linear-gradient(90deg, #687789, #bdc7d2);
+}
+
+.barra-visitante {
+    background: linear-gradient(90deg, #1477d4, #55b6ff);
+    box-shadow: 0 0 15px rgba(66,165,255,.3);
+}
+
+/* GOLES Y CÓRNERS */
+
+.pronostico-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.pronostico-grid .pronostico-card {
+    margin-bottom: 0;
+}
+
+.comparativa-valores {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+}
+
+.valor-equipo,
+.valor-total {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.valor-equipo span,
+.valor-total span {
+    color: #8799a9;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.valor-equipo strong,
+.valor-total strong {
+    font-size: clamp(23px, 3vw, 30px);
+    font-weight: 950;
+    font-variant-numeric: tabular-nums;
+}
+
+.valor-total {
+    background: rgba(255,255,255,.035);
+    border: 1px solid var(--borde);
+    padding: 15px 5px;
+    border-radius: 12px;
+}
+
+.valor-total strong {
+    color: white;
+}
+
+/* MERCADOS */
+
+.mercados-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 12px;
+}
+
+.mercado-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: rgba(4,10,17,.55);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: 16px;
+    transition: background .2s, border-color .2s;
+}
+
+.mercado-item:hover {
+    background: rgba(0,239,130,.055);
+    border-color: rgba(0,239,130,.25);
+}
+
+.mercado-item span {
+    color: #aab8c6;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.mercado-item strong {
+    color: var(--verde);
+    font-size: 19px;
+    font-weight: 950;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* NOTA */
+
+.pronostico-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: #718294;
+    font-size: 11px;
+    line-height: 1.7;
+    margin: 22px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--borde);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+    .pronostico-panel {
+        padding: 17px;
+        border-radius: 16px;
+    }
+
+    .pronostico-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pronostico-muestras {
+        gap: 10px;
+    }
+
+    .muestra-equipo {
+        padding: 15px;
+    }
+
+    .muestra-equipo span {
+        font-size: 10px;
+    }
+
+    .muestra-equipo strong {
+        font-size: 23px;
+    }
+}
+
+@media (max-width: 430px) {
+    .pronostico-muestras {
+        grid-template-columns: 1fr;
+    }
+
+    .mercados-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pronostico-card {
+        padding: 17px;
+    }
+
+    .mercado-item {
+        padding: 13px;
+    }
+}

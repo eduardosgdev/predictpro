@@ -279,3 +279,230 @@ export function analizarContraCincoEstrellas(historial) {
     return calcularEstadisticas(partidos);
 }
 
+
+// ==========================================
+// 5. PRONÓSTICO DE UN ENFRENTAMIENTO ESPECÍFICO
+// ==========================================
+
+// Distribución de Poisson
+function calcularPoisson(lambda) {
+    const probabilidades = [];
+
+    let probabilidad = Math.exp(-lambda);
+    probabilidades.push(probabilidad);
+
+    for (let i = 1; i <= 30; i++) {
+        probabilidad = probabilidad * lambda / i;
+        probabilidades.push(probabilidad);
+    }
+
+    // Normalizamos para que la suma sea 1
+    const suma = probabilidades.reduce((a, b) => a + b, 0);
+
+    return probabilidades.map(p => p / suma);
+}
+
+
+// Calcula las probabilidades de victoria, empate y derrota
+function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
+
+    const poissonLocal = calcularPoisson(golesLocal);
+    const poissonVisitante = calcularPoisson(golesVisitante);
+
+    let victoriaLocal = 0;
+    let empate = 0;
+    let victoriaVisitante = 0;
+    let masDe25Goles = 0;
+    let ambosMarcan = 0;
+
+    poissonLocal.forEach((probLocal, golesL) => {
+
+        poissonVisitante.forEach((probVisitante, golesV) => {
+
+            const probabilidad = probLocal * probVisitante;
+
+            if (golesL > golesV) {
+                victoriaLocal += probabilidad;
+            } else if (golesL === golesV) {
+                empate += probabilidad;
+            } else {
+                victoriaVisitante += probabilidad;
+            }
+
+            if (golesL + golesV >= 3) {
+                masDe25Goles += probabilidad;
+            }
+
+            if (golesL > 0 && golesV > 0) {
+                ambosMarcan += probabilidad;
+            }
+        });
+    });
+
+    return {
+        victoriaLocal: victoriaLocal * 100,
+        empate: empate * 100,
+        victoriaVisitante: victoriaVisitante * 100,
+        masDe25Goles: masDe25Goles * 100,
+        ambosMarcan: ambosMarcan * 100
+    };
+}
+
+
+// Probabilidad de superar una línea de córners
+function probabilidadMasDeCorners(lambda, linea) {
+
+    const poisson = calcularPoisson(lambda);
+
+    const minimo = Math.floor(linea) + 1;
+
+    const probabilidad = poisson
+        .slice(minimo)
+        .reduce((suma, valor) => suma + valor, 0);
+
+    return probabilidad * 100;
+}
+
+
+// ==========================================
+// FUNCIÓN PRINCIPAL
+// ==========================================
+
+export function analizarEnfrentamiento(
+    historialLocal,
+    historialVisitante,
+    estilosLocal,
+    estilosVisitante
+) {
+
+    // 1. Historial del local contra equipos
+    // que tienen el perfil del visitante
+
+    const partidosLocal = historialLocal.filter(partido =>
+        partido.estiloOfensivoRival === estilosVisitante.ofensivo &&
+        partido.estiloDefensivoRival === estilosVisitante.defensivo
+    );
+
+
+    // 2. Historial del visitante contra equipos
+    // que tienen el perfil del local
+
+    const partidosVisitante = historialVisitante.filter(partido =>
+        partido.estiloOfensivoRival === estilosLocal.ofensivo &&
+        partido.estiloDefensivoRival === estilosLocal.defensivo
+    );
+
+
+    // 3. Estadísticas de ambos grupos
+
+    const estadisticasLocal = calcularEstadisticas(partidosLocal);
+    const estadisticasVisitante = calcularEstadisticas(partidosVisitante);
+
+
+    // Si no hay partidos de alguno de los dos perfiles,
+    // no inventamos una predicción.
+
+    if (!partidosLocal.length || !partidosVisitante.length) {
+        return {
+            disponible: false,
+            mensaje: "No hay suficientes enfrentamientos históricos con estos perfiles tácticos.",
+            muestra: {
+                local: partidosLocal.length,
+                visitante: partidosVisitante.length
+            },
+            estadisticasLocal,
+            estadisticasVisitante
+        };
+    }
+
+
+    // 4. Goles esperados
+    // Ataque local + goles concedidos por el visitante
+
+    const golesEsperadosLocal = (
+        estadisticasLocal.goles.promedioFavor +
+        estadisticasVisitante.goles.promedioContra
+    ) / 2;
+
+
+    // Ataque visitante + goles concedidos por el local
+
+    const golesEsperadosVisitante = (
+        estadisticasVisitante.goles.promedioFavor +
+        estadisticasLocal.goles.promedioContra
+    ) / 2;
+
+
+    // 5. Córners esperados
+
+    const cornersEsperadosLocal = (
+        estadisticasLocal.corners.promedioFavor +
+        estadisticasVisitante.corners.promedioContra
+    ) / 2;
+
+
+    const cornersEsperadosVisitante = (
+        estadisticasVisitante.corners.promedioFavor +
+        estadisticasLocal.corners.promedioContra
+    ) / 2;
+
+
+    const golesTotalesEsperados =
+        golesEsperadosLocal + golesEsperadosVisitante;
+
+    const cornersTotalesEsperados =
+        cornersEsperadosLocal + cornersEsperadosVisitante;
+
+
+    // 6. Probabilidades del resultado
+
+    const probabilidades = calcularProbabilidadesResultado(
+        golesEsperadosLocal,
+        golesEsperadosVisitante
+    );
+
+
+    // 7. Probabilidades de córners totales
+
+    const mercadosCorners = {
+        masDe75: probabilidadMasDeCorners(cornersTotalesEsperados, 7.5),
+        masDe85: probabilidadMasDeCorners(cornersTotalesEsperados, 8.5),
+        masDe95: probabilidadMasDeCorners(cornersTotalesEsperados, 9.5),
+        masDe105: probabilidadMasDeCorners(cornersTotalesEsperados, 10.5)
+    };
+
+
+    // 8. Resultado final
+
+    return {
+        disponible: true,
+
+        muestra: {
+            local: partidosLocal.length,
+            visitante: partidosVisitante.length
+        },
+
+        estadisticasLocal,
+        estadisticasVisitante,
+
+        goles: {
+            local: golesEsperadosLocal,
+            visitante: golesEsperadosVisitante,
+            total: golesTotalesEsperados
+        },
+
+        corners: {
+            local: cornersEsperadosLocal,
+            visitante: cornersEsperadosVisitante,
+            total: cornersTotalesEsperados
+        },
+
+        probabilidades,
+
+        mercados: {
+            masDe25Goles: probabilidades.masDe25Goles,
+            ambosMarcan: probabilidades.ambosMarcan,
+            corners: mercadosCorners
+        }
+    };
+}
