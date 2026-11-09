@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiTeams = axios.create({
-    //baseURL:'https://rentserver-c73g.onrender.com/juegos',
+    
      baseURL:'http://localhost:3000/teams',
     timeout: 5000,
     headers:{
@@ -17,3 +17,4 @@ apiTeams.interceptors.response.use(
 )
 
 export default apiTeams;
+

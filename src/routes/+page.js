@@ -1,5 +1,6 @@
 import apiTeams from "../conexiones/teamAxios.js";
 
+
 export async function load(){
     try {
         const response = await apiTeams.get(`/`)
