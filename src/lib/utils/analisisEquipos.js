@@ -506,3 +506,149 @@ export function analizarEnfrentamiento(
         }
     };
 }
+
+
+// ==========================================
+// ANÁLISIS INDIVIDUAL CONTRA ESTILO DEFENSIVO
+// ==========================================
+function probabilidadPoisson(lambda, minimo) {
+
+    lambda = Number(lambda ?? 0);
+
+    if (lambda <= 0) return 0;
+
+    let acumulado = 0;
+    let factorial = 1;
+
+    for (let i = 0; i < minimo; i++) {
+
+        if (i > 0) factorial *= i;
+
+        acumulado += (
+            Math.pow(lambda, i) *
+            Math.exp(-lambda)
+        ) / factorial;
+    }
+
+    return Number((1 - acumulado).toFixed(4));
+}
+
+export function analizarJugadorContraEstiloDefensivo(
+    jugadorId,
+    estadisticasJugadores,
+    estiloDefensivoRival
+) {
+    const idJugador = String(jugadorId);
+
+    // 1. Filtrar los registros del jugador
+    const estadisticasJugador = estadisticasJugadores.filter(registro => {
+        const id = registro.player?._id ?? registro.player;
+        return String(id) === idJugador;
+    });
+
+    if (estadisticasJugador.length === 0) {
+        return {
+            disponible: false,
+            mensaje: "No existen estadísticas para este jugador"
+        };
+    }
+
+    // 2. Identificar el equipo del jugador
+    const jugador = estadisticasJugador[0].player;
+    const equipoId = jugador?.equipo?._id ?? jugador?.equipo;
+
+    if (!equipoId) {
+        return {
+            disponible: false,
+            mensaje: "No se pudo identificar el equipo del jugador"
+        };
+    }
+
+    // 3. Filtrar partidos contra el estilo defensivo indicado
+    const partidosFiltrados = estadisticasJugador.filter(registro => {
+        const partido = registro.match;
+
+        if (!partido || typeof partido !== "object") return false;
+
+        const idLocal = partido.team1?._id ?? partido.team1;
+        const idVisitante = partido.team2?._id ?? partido.team2;
+
+        const equipoJugador = String(equipoId);
+
+        // El jugador pertenecía al equipo local
+        if (String(idLocal) === equipoJugador) {
+            return partido.estilodefteam2 === estiloDefensivoRival;
+        }
+
+        // El jugador pertenecía al equipo visitante
+        if (String(idVisitante) === equipoJugador) {
+            return partido.estilodefteam1 === estiloDefensivoRival;
+        }
+
+        return false;
+    });
+
+    // 4. Comprobar historial
+    if (partidosFiltrados.length === 0) {
+        return {
+            disponible: false,
+            mensaje: "El jugador no tiene partidos registrados contra este estilo defensivo",
+            estiloDefensivoAnalizado: estiloDefensivoRival,
+            partidosAnalizados: 0
+        };
+    }
+
+    // 5. Calcular totales
+    const total = partidosFiltrados.reduce((acumulado, registro) => {
+        acumulado.goles += Number(registro.goles ?? 0);
+        acumulado.asistencias += Number(registro.asistencias ?? 0);
+        acumulado.tirospuerta += Number(registro.tirospuerta ?? 0);
+        acumulado.faltascometidaspartido += Number(registro.faltascometidaspartido ?? 0);
+        acumulado.faltasrecibidaspartido += Number(registro.faltasrecibidaspartido ?? 0);
+
+        return acumulado;
+    }, {
+        goles: 0,
+        asistencias: 0,
+        tirospuerta: 0,
+        faltascometidaspartido: 0,
+        faltasrecibidaspartido: 0
+    });
+
+    // 6. Calcular número de partidos
+    const partidosAnalizados = partidosFiltrados.length;
+
+    // 7. Calcular promedios
+    const promedio = {};
+
+    Object.keys(total).forEach(campo => {
+        promedio[campo] = Number(
+            (total[campo] / partidosAnalizados).toFixed(2)
+        );
+    });
+
+    // 8. Calcular probabilidades Poisson
+    const probabilidades = {};
+
+    Object.keys(promedio).forEach(campo => {
+        probabilidades[campo] = {
+            alMenos1: probabilidadPoisson(promedio[campo], 1),
+            alMenos2: probabilidadPoisson(promedio[campo], 2),
+            alMenos3: probabilidadPoisson(promedio[campo], 3)
+        };
+    });
+
+    // 9. Devolver análisis
+    return {
+        disponible: true,
+        jugadorId: idJugador,
+        equipoId: String(equipoId),
+        estiloDefensivoAnalizado: estiloDefensivoRival,
+        partidosAnalizados,
+        totales: total,
+        prediccion: promedio,
+        probabilidades
+    };
+}
+
+

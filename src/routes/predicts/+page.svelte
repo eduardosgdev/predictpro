@@ -2,6 +2,7 @@
 <script>
     // @ts-nocheck
     import "#lib/styles/pronostico.css";
+    import playerstatsAxios from "../../conexiones/playerStatsAxios.js";
     import matchTeam from "../../conexiones/matchAxios.js";
     import playerTeam from "../../conexiones/playerAxios.js";
     import NavBar from "#lib/components/NavBar.svelte";
@@ -9,11 +10,13 @@
     normalizarHistorial,
     analizarContraCincoEstrellas,
     analizarComportamientoPorEstilo,
-    analizarEnfrentamiento
+    analizarEnfrentamiento,
+    analizarJugadorContraEstiloDefensivo
 } from "#lib/utils/analisisEquipos.js";
     
     let { data } = $props();
     let pronostico = $state(null);
+    let prediccionesJugadores = $state([]);
     // ==========================================
     // 1. EQUIPOS RECIBIDOS DESDE +page.js
     // ==========================================
@@ -274,8 +277,6 @@ try {
         ? partidosVisitante.data
         : [];
 
-    console.log("TOTAL PARTIDOS LOCAL:", historialLocal.length);
-    console.log("TOTAL PARTIDOS VISITANTE:", historialVisitante.length);
 
     // ==========================================
     // RECUPERAR JUGADORES
@@ -291,10 +292,24 @@ try {
     // NORMALIZAR HISTORIAL LOCAL
     // ==========================================
 
-    historialNormalizadoLocal = normalizarHistorial(
-        historialLocal,
-        equipoLocal
-    );
+
+        const idsPartidos = [
+        ...historialLocal,
+        ...historialVisitante
+    ].map(partido => partido._id);
+
+    const idsJugadores = [
+        ...jugadoresLocal,
+        ...jugadoresVisitante
+    ].map(jugador => jugador._id);
+
+        historialNormalizadoLocal = normalizarHistorial(
+            historialLocal,
+            equipoLocal
+        );
+    
+        const partidosUnicos = [...new Set(idsPartidos.map(String))];
+        const jugadoresUnicos = [...new Set(idsJugadores.map(String))];
 
     // ==========================================
     // NORMALIZAR HISTORIAL VISITANTE
@@ -328,7 +343,7 @@ try {
     cincoEstrellasVisitante = analizarContraCincoEstrellas(
         historialNormalizadoVisitante
     );
-
+    console.log(jugadoresLocal)
     // ==========================================
     // OBTENER ESTILOS PROPIOS DE CADA EQUIPO
     // ==========================================
@@ -341,8 +356,82 @@ try {
         historialNormalizadoVisitante
     );
 
-    console.log("ESTILOS LOCAL:", estilosLocalPartido);
-    console.log("ESTILOS VISITANTE:", estilosVisitantePartido);
+    const responseStats = await playerstatsAxios.post(
+            "/comparativa",
+            {
+                matches: partidosUnicos,
+                players: jugadoresUnicos
+            }
+        );
+
+const estadisticasJugadores = responseStats.data.estadisticas;
+
+
+
+
+
+// 3. Comprobar que tenemos los estilos
+if (
+    estilosLocalPartido?.defensivo &&
+    estilosVisitantePartido?.defensivo
+) {
+
+    // 4. AQUÍ PEGAS EL ÚLTIMO CÓDIGO
+    // PREDICCIONES INDIVIDUALES
+    const estiloDefensivoLocal = estilosLocalPartido.defensivo;
+    const estiloDefensivoVisitante = estilosVisitantePartido.defensivo;
+
+
+    prediccionesJugadores = estadisticasJugadores.reduce((resultado, registro) => {
+
+        const jugador = registro.player;
+
+        if (!jugador?._id) return resultado;
+
+        const jugadorId = String(jugador._id);
+
+        if (resultado.some(p => p.jugadorId === jugadorId)) {
+            return resultado;
+        }
+
+        const equipoJugador = String(
+            jugador.equipo?._id ?? jugador.equipo
+        );
+
+        let estiloRival;
+
+        if (equipoJugador === String(equipoLocal)) {
+            estiloRival = estiloDefensivoVisitante;
+        } else if (equipoJugador === String(equipoVisitante)) {
+            estiloRival = estiloDefensivoLocal;
+        } else {
+            return resultado;
+        }
+
+        const analisis = analizarJugadorContraEstiloDefensivo(
+            jugadorId,
+            estadisticasJugadores,
+            estiloRival
+        );
+
+        resultado.push({
+            nombre: jugador.nombre,
+            jugadorId,
+            equipoId: equipoJugador,
+            ...analisis
+        });
+
+        return resultado;
+
+    }, []);
+
+    console.log("PREDICCIONES INDIVIDUALES:", prediccionesJugadores);
+
+} else {
+    prediccionesJugadores = [];
+
+    console.error("No se pudieron obtener los estilos defensivos");
+}
 
     // ==========================================
     // GENERAR PRONÓSTICO DEL ENFRENTAMIENTO
@@ -361,7 +450,7 @@ try {
         estilosVisitantePartido
     );
 
-    console.log("PRONÓSTICO FINAL:", pronostico);
+    
 
 } else {
     pronostico = null;
@@ -832,10 +921,195 @@ function formatoNumero(valor) {
 
         </section>
     {/if}
+    {#if prediccionesJugadores.length > 0}
+    <section class="max-w-7xl mx-auto mt-16 space-y-8">
 
+        <div class="text-center space-y-2">
+            <h2 class="text-3xl font-black text-white">
+                Predicción individual de jugadores
+            </h2>
+            <p class="text-gray-400">
+                Probabilidades según el estilo defensivo del rival
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1  gap-6">
+
+            {#each prediccionesJugadores as jugador (jugador.jugadorId)}
+
+                <article class="bg-[#111a22] border border-white/10 rounded-2xl p-6 space-y-5
+                    {jugador.equipoId === String(equipoLocal)
+                        ? 'border-l-4 border-l-[#00ff66]'
+                        : 'border-l-4 border-l-blue-500'}">
+
+                    <!-- CABECERA -->
+                    <div class="flex justify-between items-start gap-3">
+
+                        <div>
+                            <h3 class="text-xl font-bold text-white">
+                                {jugador.nombre}
+                            </h3>
+
+                            <p class="text-sm text-gray-400 mt-1">
+                                Rival:
+                                <span class="text-[#00ff66]">
+                                    {formatoEstilo(jugador.estiloDefensivoAnalizado)}
+                                </span>
+                            </p>
+                        </div>
+
+                        <span class="text-xs bg-white/10 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap">
+                            {jugador.partidosAnalizados ?? 0} partidos
+                        </span>
+
+                    </div>
+
+                    {#if jugador.disponible}
+
+                        <!-- PROBABILIDADES -->
+                        <div class="space-y-4">
+
+                            <!-- GOLES -->
+                            <div class="bg-black/20 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-semibold text-gray-300">
+                                        <i class="fa-solid fa-futbol text-[#00ff66] mr-2"></i>
+                                        Marcar 1 gol o más
+                                    </span>
+
+                                    <span class="text-xl font-black text-[#00ff66]">
+                                        {formatoPorcentaje(jugador.probabilidades.goles.alMenos1)}
+                                    </span>
+                                </div>
+
+                                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div
+                                        class="h-full bg-[#00ff66] rounded-full transition-all"
+                                        style={`width: ${porcentaje(jugador.probabilidades.goles.alMenos1)}%`}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <!-- ASISTENCIAS -->
+                            <div class="bg-black/20 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-semibold text-gray-300">
+                                        <i class="fa-solid fa-handshake text-blue-400 mr-2"></i>
+                                        1 asistencia o más
+                                    </span>
+
+                                    <span class="text-xl font-black text-blue-400">
+                                        {formatoPorcentaje(jugador.probabilidades.asistencias.alMenos1)}
+                                    </span>
+                                </div>
+
+                                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div
+                                        class="h-full bg-blue-400 rounded-full transition-all"
+                                        style={`width: ${porcentaje(jugador.probabilidades.asistencias.alMenos1)}%`}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <!-- TIROS A PUERTA -->
+                            <div class="bg-black/20 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-semibold text-gray-300">
+                                        <i class="fa-solid fa-bullseye text-yellow-400 mr-2"></i>
+                                        1 tiro a puerta o más
+                                    </span>
+
+                                    <span class="text-xl font-black text-yellow-400">
+                                        {formatoPorcentaje(jugador.probabilidades.tirospuerta.alMenos1)}
+                                    </span>
+                                </div>
+
+                                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div
+                                        class="h-full bg-yellow-400 rounded-full transition-all"
+                                        style={`width: ${porcentaje(jugador.probabilidades.tirospuerta.alMenos1)}%`}
+                                    ></div>
+                                </div>
+
+                                <p class="text-xs text-gray-500 mt-2">
+                                    2 o más:
+                                    {formatoPorcentaje(jugador.probabilidades.tirospuerta.alMenos2)}
+                                </p>
+                            </div>
+
+                            <!-- FALTAS COMETIDAS -->
+                            <div class="bg-black/20 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-semibold text-gray-300">
+                                        <i class="fa-solid fa-triangle-exclamation text-orange-400 mr-2"></i>
+                                        1 falta cometida o más
+                                    </span>
+
+                                    <span class="text-xl font-black text-orange-400">
+                                        {formatoPorcentaje(jugador.probabilidades.faltascometidaspartido.alMenos1)}
+                                    </span>
+                                </div>
+
+                                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div
+                                        class="h-full bg-orange-400 rounded-full transition-all"
+                                        style={`width: ${porcentaje(jugador.probabilidades.faltascometidaspartido.alMenos1)}%`}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <!-- FALTAS RECIBIDAS -->
+                            <div class="bg-black/20 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-semibold text-gray-300">
+                                        <i class="fa-solid fa-person-circle-exclamation text-purple-400 mr-2"></i>
+                                        1 falta recibida o más
+                                    </span>
+
+                                    <span class="text-xl font-black text-purple-400">
+                                        {formatoPorcentaje(jugador.probabilidades.faltasrecibidaspartido.alMenos1)}
+                                    </span>
+                                </div>
+
+                                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div
+                                        class="h-full bg-purple-400 rounded-full transition-all"
+                                        style={`width: ${porcentaje(jugador.probabilidades.faltasrecibidaspartido.alMenos1)}%`}
+                                    ></div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- INFORMACIÓN -->
+                        <div class="border-t border-white/10 pt-4">
+                            <p class="text-xs text-gray-500">
+                                Probabilidades estimadas mediante modelo Poisson,
+                                calculadas a partir del historial del jugador
+                                contra este estilo defensivo.
+                            </p>
+                        </div>
+
+                    {:else}
+
+                        <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                            <p class="text-sm text-yellow-400">
+                                {jugador.mensaje}
+                            </p>
+                        </div>
+
+                    {/if}
+
+                </article>
+
+            {/each}
+
+        </div>
+    </section>
+    {/if}
     {#if analisisLocal && analisisVisitante}
 
-    <div class="max-w-6xl mx-auto mt-16 space-y-10">
+    <div class="max-w-7xl mx-auto mt-16 space-y-8">
 
         <!-- CABECERA DE RESULTADOS -->
         <div class="border-b border-white/10 pb-6">
@@ -1069,5 +1343,6 @@ function formatoNumero(valor) {
     </div>
 
     {/if}
+    
 
 </section>
