@@ -740,7 +740,7 @@ function formatoNumero(valor) {
 
     </div>
     {#if pronostico?.disponible}
-        <section class="pronostico-panel">
+        <section class="pronostico-panel ">
 
             <div class="pronostico-header">
                 <div>

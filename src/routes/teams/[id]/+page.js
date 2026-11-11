@@ -4,7 +4,7 @@ import playerTeam from "../../../conexiones/playerAxios.js";
 
 export async function load({params}) {
     try {
-        const response = await matchTeam.get(`/${params.id}`)
+        const response = await matchTeam.get(`/teammatch/${params.id}`)
         const responsePlayer = await playerTeam.get(`/${params.id}`);
 
         const players = responsePlayer.data.players;

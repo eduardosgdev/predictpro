@@ -1,6 +1,8 @@
 
 <script>
 // @ts-nocheck
+    import playerTeam from "../../../conexiones/playerAxios.js";
+    import playerstatsAxios from "../../../conexiones/playerStatsAxios.js";
     import NavBar from "#lib/components/NavBar.svelte";
     let { data } = $props();
 
@@ -203,6 +205,22 @@
             );
         })
     );
+    let modalEstadisticas = $state(false);
+    let partidoSeleccionado = $state(null);
+
+    let jugadoresTeam1 = $state([]);
+    let jugadoresTeam2 = $state([]);
+
+    let registrosEstadisticas = $state([]);
+
+    let cargandoJugadores = $state(false);
+    let guardandoEstadisticas = $state(false);
+
+    let errorEstadisticas = $state("");
+    let mensajeEstadisticas = $state("");
+
+    // IDs registrados durante la sesión actual
+    let partidosRegistradosLocal = $state(new Set());
 
     // CALCULAR VICTORIAS, EMPATES Y DERROTAS
     function calcularRendimiento(lista) {
@@ -323,6 +341,179 @@
     // Cerrar modal
     function cerrarAnalisis() {
         modalAnalisis = false;
+    }
+
+    async function abrirModalEstadisticas(partido) {
+
+    const matchId = String(partido._id);
+
+    // Evitar registrar un encuentro ya completado
+    if (
+        partido.estadisticasRegistradas === true ||
+        partidosRegistradosLocal.has(matchId)
+    ) {
+        return;
+    }
+
+    partidoSeleccionado = partido;
+
+    modalEstadisticas = true;
+    cargandoJugadores = true;
+
+    errorEstadisticas = "";
+    mensajeEstadisticas = "";
+
+    registrosEstadisticas = [];
+
+    try {
+
+        // Obtener jugadores de ambos equipos
+        const [responseTeam1, responseTeam2] = await Promise.all([
+            playerTeam.get(`/${partido.team1._id}`),
+            playerTeam.get(`/${partido.team2._id}`)
+        ]);
+
+        jugadoresTeam1 = responseTeam1.data.players ?? [];
+        jugadoresTeam2 = responseTeam2.data.players ?? [];
+
+        // Preparar formulario del equipo 1
+        const registrosTeam1 = jugadoresTeam1.map(jugador => ({
+            player: jugador._id,
+            nombre: jugador.nombre,
+            apellidos: jugador.apellidos,
+            posicion: jugador.posicion,
+            equipoNombre: partido.team1.nombre,
+            equipoId: partido.team1._id,
+            seleccionado: false,
+            goles: 0,
+            asistencias: 0,
+            tirospuerta: 0,
+            faltascometidaspartido: 0,
+            faltasrecibidaspartido: 0
+        }));
+
+        // Preparar formulario del equipo 2
+        const registrosTeam2 = jugadoresTeam2.map(jugador => ({
+            player: jugador._id,
+            nombre: jugador.nombre,
+            apellidos: jugador.apellidos,
+            posicion: jugador.posicion,
+            equipoNombre: partido.team2.nombre,
+            equipoId: partido.team2._id,
+            seleccionado: false,
+            goles: 0,
+            asistencias: 0,
+            tirospuerta: 0,
+            faltascometidaspartido: 0,
+            faltasrecibidaspartido: 0
+        }));
+
+        registrosEstadisticas = [
+            ...registrosTeam1,
+            ...registrosTeam2
+        ];
+
+    } catch (error) {
+
+        console.error("ERROR AL CARGAR JUGADORES:", error);
+
+        errorEstadisticas =
+            "No se pudieron cargar los jugadores de ambos equipos.";
+
+    } finally {
+
+        cargandoJugadores = false;
+    }
+    }
+
+
+    // CERRAR MODAL
+    function cerrarModalEstadisticas() {
+
+    if (guardandoEstadisticas) return;
+
+    modalEstadisticas = false;
+    partidoSeleccionado = null;
+
+    registrosEstadisticas = [];
+    errorEstadisticas = "";
+    }
+
+
+    // REGISTRAR ESTADÍSTICAS DE AMBOS EQUIPOS
+    async function guardarEstadisticas() {
+
+    if (!partidoSeleccionado || guardandoEstadisticas) return;
+
+    errorEstadisticas = "";
+    mensajeEstadisticas = "";
+
+    const jugadoresSeleccionados = registrosEstadisticas.filter(
+        registro => registro.seleccionado
+    );
+
+    if (jugadoresSeleccionados.length === 0) {
+
+        errorEstadisticas =
+            "Selecciona al menos un jugador para registrar sus estadísticas.";
+
+        return;
+    }
+
+    guardandoEstadisticas = true;
+
+    try {
+
+        const datos = {
+            match: partidoSeleccionado._id,
+
+            estadisticas: jugadoresSeleccionados.map(jugador => ({
+                player: jugador.player,
+                goles: Number(jugador.goles),
+                asistencias: Number(jugador.asistencias),
+                tirospuerta: Number(jugador.tirospuerta),
+                faltascometidaspartido: Number(
+                    jugador.faltascometidaspartido
+                ),
+                faltasrecibidaspartido: Number(
+                    jugador.faltasrecibidaspartido
+                )
+            }))
+        };
+
+        await playerstatsAxios.post("/", datos);
+
+        // Actualizar estado local del encuentro
+        const matchId = String(partidoSeleccionado._id);
+
+        partidosRegistradosLocal = new Set([
+            ...partidosRegistradosLocal,
+            matchId
+        ]);
+
+        partidoSeleccionado.estadisticasRegistradas = true;
+
+        mensajeEstadisticas =
+            "Estadísticas registradas correctamente.";
+
+        modalEstadisticas = false;
+
+        partidoSeleccionado = null;
+
+        registrosEstadisticas = [];
+
+    } catch (error) {
+
+        console.error("ERROR AL GUARDAR ESTADÍSTICAS:", error);
+
+        errorEstadisticas =
+            error.response?.data?.message ||
+            "No se pudieron registrar las estadísticas.";
+
+    } finally {
+
+        guardandoEstadisticas = false;
+    }
     }
 </script>
 
@@ -810,6 +1001,30 @@
 
                     </div>
 
+                    <!-- REGISTRO DE ESTADÍSTICAS INDIVIDUALES -->
+                    <div class="p-4 border-t border-white/5">
+
+                        {#if partido.estadisticasRegistradas === true || partidosRegistradosLocal.has(String(partido._id))}
+
+                            <div class="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold">
+                                <span>✓</span>
+                                ESTADÍSTICAS REGISTRADAS
+                            </div>
+
+                        {:else}
+
+                            <button
+                                type="button"
+                                onclick={() => abrirModalEstadisticas(partido)}
+                                class="w-full py-3 rounded-xl bg-[#00ff66] text-[#0b1117] font-black text-xs hover:bg-[#00e65c] transition"
+                            >
+                                + AÑADIR ESTADÍSTICAS DE JUGADORES
+                            </button>
+
+                        {/if}
+
+                    </div>
+
                 </article>
 
             {/each}
@@ -1035,6 +1250,476 @@
     {/if}
 
 </section>
+
+{#if modalEstadisticas}
+
+<div
+    class="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 md:p-6"
+    role="presentation"
+    onclick={cerrarModalEstadisticas}
+>
+
+    <div
+        class="bg-[#0b1117] border border-white/10 rounded-2xl w-full max-w-7xl max-h-[94vh] overflow-y-auto shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-estadisticas"
+        onclick={(e) => e.stopPropagation()}
+    >
+
+        <!-- CABECERA -->
+
+        <div class="sticky top-0 z-20 bg-[#111a22] border-b border-white/10 p-5 md:p-6 flex justify-between items-center gap-4">
+
+            <div>
+                <span class="text-[#00ff66] text-[10px] font-bold tracking-[3px]">
+                    PREDICTPRO / PLAYER MATCH DATA
+                </span>
+
+                <h2
+                    id="titulo-estadisticas"
+                    class="text-xl md:text-2xl font-black mt-2"
+                >
+                    Estadísticas individuales
+                </h2>
+
+                <p class="text-gray-500 text-xs mt-1">
+                    {partidoSeleccionado?.team1?.nombre}
+                    vs
+                    {partidoSeleccionado?.team2?.nombre}
+                </p>
+            </div>
+
+            <button
+                type="button"
+                onclick={cerrarModalEstadisticas}
+                disabled={guardandoEstadisticas}
+                class="w-10 h-10 shrink-0 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-red-500 transition"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="p-5 md:p-7 space-y-8">
+
+            <!-- INFORMACIÓN DEL ENCUENTRO -->
+
+            {#if partidoSeleccionado}
+
+                <div class="grid grid-cols-3 items-center gap-3 bg-[#111a22] border border-white/5 rounded-2xl p-5">
+
+                    <div class="flex flex-col items-center text-center gap-2">
+
+                        <img
+                            src={partidoSeleccionado.team1?.escudo}
+                            alt={partidoSeleccionado.team1?.nombre}
+                            class="w-16 h-16 object-contain"
+                        />
+
+                        <span class="text-xs font-bold">
+                            {partidoSeleccionado.team1?.nombre}
+                        </span>
+
+                    </div>
+
+                    <div class="text-center">
+
+                        <span class="text-[9px] text-gray-500 font-bold tracking-widest">
+                            RESULTADO
+                        </span>
+
+                        <p class="text-2xl font-black mt-2">
+                            {partidoSeleccionado.golesteam1}
+                            -
+                            {partidoSeleccionado.golesteam2}
+                        </p>
+
+                        <span class="text-[9px] text-[#00ff66]">
+                            {partidoSeleccionado.competicion}
+                        </span>
+
+                    </div>
+
+                    <div class="flex flex-col items-center text-center gap-2">
+
+                        <img
+                            src={partidoSeleccionado.team2?.escudo}
+                            alt={partidoSeleccionado.team2?.nombre}
+                            class="w-16 h-16 object-contain"
+                        />
+
+                        <span class="text-xs font-bold">
+                            {partidoSeleccionado.team2?.nombre}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            {/if}
+
+
+            {#if cargandoJugadores}
+
+                <div class="py-16 text-center">
+                    <p class="text-[#00ff66] font-bold animate-pulse">
+                        CARGANDO PLANTILLAS...
+                    </p>
+
+                    <p class="text-gray-500 text-xs mt-2">
+                        Obteniendo jugadores de ambos equipos
+                    </p>
+                </div>
+
+            {:else}
+
+                <!-- EQUIPO LOCAL -->
+
+                <section>
+
+                    <div class="flex items-center gap-3 mb-5">
+
+                        <img
+                            src={partidoSeleccionado?.team1?.escudo}
+                            alt=""
+                            class="w-10 h-10 object-contain"
+                        />
+
+                        <div>
+                            <h3 class="font-black text-white">
+                                {partidoSeleccionado?.team1?.nombre}
+                            </h3>
+
+                            <p class="text-[10px] text-gray-500">
+                                {jugadoresTeam1.length} jugadores disponibles
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="space-y-3">
+
+                        {#each registrosEstadisticas.filter(j => String(j.equipoId) === String(partidoSeleccionado?.team1?._id)) as jugador (jugador.player)}
+
+                            <div class="bg-[#111a22] border border-white/10 rounded-xl p-4">
+
+                                <div class="flex items-center gap-3 mb-4">
+
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={jugador.seleccionado}
+                                        class="w-5 h-5 accent-[#00ff66]"
+                                    />
+
+                                    <div class="flex-1 min-w-0">
+
+                                        <p class="text-sm font-bold text-white">
+                                            {jugador.nombre} {jugador.apellidos}
+                                        </p>
+
+                                        <p class="text-[10px] text-gray-500">
+                                            {jugador.posicion || "Sin posición"}
+                                        </p>
+
+                                    </div>
+
+                                    {#if jugador.seleccionado}
+                                        <span class="text-[9px] text-[#00ff66] font-bold">
+                                            SELECCIONADO
+                                        </span>
+                                    {/if}
+
+                                </div>
+
+
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Goles
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.goles}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Asistencias
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.asistencias}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Tiros a puerta
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.tirospuerta}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Faltas cometidas
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.faltascometidaspartido}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Faltas recibidas
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.faltasrecibidaspartido}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {/each}
+
+                        {#if jugadoresTeam1.length === 0}
+                            <p class="text-gray-500 text-sm text-center py-5">
+                                No hay jugadores registrados en este equipo.
+                            </p>
+                        {/if}
+
+                    </div>
+
+                </section>
+
+
+                <!-- EQUIPO VISITANTE -->
+
+                <section>
+
+                    <div class="flex items-center gap-3 mb-5">
+
+                        <img
+                            src={partidoSeleccionado?.team2?.escudo}
+                            alt=""
+                            class="w-10 h-10 object-contain"
+                        />
+
+                        <div>
+                            <h3 class="font-black text-white">
+                                {partidoSeleccionado?.team2?.nombre}
+                            </h3>
+
+                            <p class="text-[10px] text-gray-500">
+                                {jugadoresTeam2.length} jugadores disponibles
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="space-y-3">
+
+                        {#each registrosEstadisticas.filter(j => String(j.equipoId) === String(partidoSeleccionado?.team2?._id)) as jugador (jugador.player)}
+
+                            <div class="bg-[#111a22] border border-white/10 rounded-xl p-4">
+
+                                <div class="flex items-center gap-3 mb-4">
+
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={jugador.seleccionado}
+                                        class="w-5 h-5 accent-[#00ff66]"
+                                    />
+
+                                    <div class="flex-1 min-w-0">
+
+                                        <p class="text-sm font-bold text-white">
+                                            {jugador.nombre} {jugador.apellidos}
+                                        </p>
+
+                                        <p class="text-[10px] text-gray-500">
+                                            {jugador.posicion || "Sin posición"}
+                                        </p>
+
+                                    </div>
+
+                                    {#if jugador.seleccionado}
+                                        <span class="text-[9px] text-[#00ff66] font-bold">
+                                            SELECCIONADO
+                                        </span>
+                                    {/if}
+
+                                </div>
+
+
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Goles
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.goles}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Asistencias
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.asistencias}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Tiros a puerta
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.tirospuerta}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Faltas cometidas
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.faltascometidaspartido}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                            Faltas recibidas
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            disabled={!jugador.seleccionado}
+                                            bind:value={jugador.faltasrecibidaspartido}
+                                            class="w-full bg-[#0b1117] border border-white/10 rounded-lg p-2 text-white text-sm disabled:opacity-30"
+                                        />
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {/each}
+
+                        {#if jugadoresTeam2.length === 0}
+                            <p class="text-gray-500 text-sm text-center py-5">
+                                No hay jugadores registrados en este equipo.
+                            </p>
+                        {/if}
+
+                    </div>
+
+                </section>
+
+            {/if}
+
+
+            <!-- MENSAJES -->
+
+            {#if errorEstadisticas}
+
+                <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+                    {errorEstadisticas}
+                </div>
+
+            {/if}
+
+
+            <!-- BOTONES -->
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/10">
+
+                <button
+                    type="button"
+                    onclick={cerrarModalEstadisticas}
+                    disabled={guardandoEstadisticas}
+                    class="flex-1 py-4 rounded-xl border border-white/10 text-gray-400 font-bold text-xs hover:bg-white/5 transition"
+                >
+                    CANCELAR
+                </button>
+
+                <button
+                    type="button"
+                    onclick={guardarEstadisticas}
+                    disabled={cargandoJugadores || guardandoEstadisticas}
+                    class="flex-1 py-4 rounded-xl bg-[#00ff66] text-[#0b1117] font-black text-xs hover:bg-[#00e65c] disabled:opacity-40 transition"
+                >
+                    {guardandoEstadisticas
+                        ? "GUARDANDO..."
+                        : "REGISTRAR ESTADÍSTICAS"}
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{/if}
+
 {#if modalAnalisis}
     <div
         class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6"
