@@ -1438,7 +1438,7 @@
                                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold6aee5510d2bde5c694ceecaf block mb-1">
                                             Goles
                                         </label>
                                         <input
@@ -1452,7 +1452,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold6aee5510d2bde5c694ceecaf block mb-1">
                                             Asistencias
                                         </label>
                                         <input
@@ -1466,7 +1466,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold6aee5510d2bde5c694ceecaf block mb-1">
                                             Tiros a puerta
                                         </label>
                                         <input
@@ -1480,7 +1480,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold6aee5510d2bde5c694ceecaf block mb-1">
                                             Faltas cometidas
                                         </label>
                                         <input
@@ -1494,7 +1494,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold6aee5510d2bde5c694ceecaf block mb-1">
                                             Faltas recibidas
                                         </label>
                                         <input
@@ -1587,7 +1587,7 @@
                                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold block mb-1">
                                             Goles
                                         </label>
                                         <input
@@ -1601,7 +1601,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold block mb-1">
                                             Asistencias
                                         </label>
                                         <input
@@ -1615,7 +1615,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold block mb-1">
                                             Tiros a puerta
                                         </label>
                                         <input
@@ -1629,7 +1629,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold block mb-1">
                                             Faltas cometidas
                                         </label>
                                         <input
@@ -1643,7 +1643,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-[10px] text-gray-500 block mb-1">
+                                        <label class="text-[10px] text-white font-bold block mb-1">
                                             Faltas recibidas
                                         </label>
                                         <input

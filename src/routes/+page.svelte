@@ -447,9 +447,9 @@ function analizarEquipo(id) {
                         <div class="mt-6 flex justify-between items-center text-xs ">
                             <button
                             onclick={() => analizarEquipo(team._id)}
-                            class="ml-32 p-3 text-gray-700 rounded-xl bg-[#00ff66] font-bold group-hover:translate-x-1 transition"
+                            class="ml-32 p-3  text-gray-900 rounded-xl bg-[#00ff66] font-bold group-hover:translate-x-1 transition"
                         >
-                            Análisis PRO
+                            Ver Equipo
                             </button>
                         </div>
 
