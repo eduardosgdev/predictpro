@@ -257,8 +257,8 @@ try {
         jugadoresEquipoVisitante
     ] = await Promise.all([
 
-        matchTeam.get(`/${equipoLocal}`),
-        matchTeam.get(`/${equipoVisitante}`),
+        matchTeam.get(`/teammatch/${equipoLocal}`),
+        matchTeam.get(`/teammatch/${equipoVisitante}`),
 
         playerTeam.get(`/${equipoLocal}`),
         playerTeam.get(`/${equipoVisitante}`)
