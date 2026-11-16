@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 // @ts-ignore
-import NavBar from "#lib/components/NavBar.svelte";
+import NavBar from "../components/navBar.svelte"
 import { goto } from '$app/navigation';
 import 'flag-icons/css/flag-icons.min.css';
 let { data } = $props();

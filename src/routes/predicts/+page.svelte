@@ -5,7 +5,7 @@
     import playerstatsAxios from "../../conexiones/playerStatsAxios.js";
     import matchTeam from "../../conexiones/matchAxios.js";
     import playerTeam from "../../conexiones/playerAxios.js";
-    import NavBar from "#lib/components/NavBar.svelte";
+    import NavBar from "../../components/navBar.svelte"
     import {
     normalizarHistorial,
     analizarContraCincoEstrellas,
