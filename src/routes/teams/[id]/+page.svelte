@@ -3,7 +3,7 @@
 // @ts-nocheck
     import playerTeam from "../../../conexiones/playerAxios.js";
     import playerstatsAxios from "../../../conexiones/playerStatsAxios.js";
-    import NavBar from "#lib/components/NavBar.svelte";
+    import NavBar from "../../../components/navBar.svelte"
     let { data } = $props();
 
     let partidos = $derived(data.partidos ?? []);
