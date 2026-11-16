@@ -1,6 +1,6 @@
 import axios from "axios"
 const matchTeam = axios.create({
-    baseURL:'http://localhost:3000/matchs',
+    baseURL:'https://apuestas-jx7n.onrender.com/matchs',
     timeout: 5000,
     headers:{
         'Content-Type':'application/json'

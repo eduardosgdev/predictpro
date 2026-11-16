@@ -2,7 +2,7 @@ import axios from "axios";
 
 const apiTeams = axios.create({
     
-     baseURL:'http://localhost:3000/teams',
+     baseURL:'https://apuestas-jx7n.onrender.com/teams',
     timeout: 5000,
     headers:{
         'Content-Type':'application/json'
