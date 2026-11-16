@@ -16,13 +16,15 @@ let equiposOrdenados = $derived(
     [...teams].sort((a, b) => b.puntuacion - a.puntuacion)
 );
 
+
 // Mostrar inicialmente 6 equipos
 let equiposVisibles = $derived(
     mostrarTodos
-        ? equiposOrdenados
-        : equiposOrdenados.slice(0, 6)
+        ? equiposFiltrados
+        : equiposFiltrados.slice(0, 6)
 );
 
+let busquedaEquipo = $state("");
 const banderas = {
     "España": "es",
     "Inglaterra": "gb-eng",
@@ -45,6 +47,38 @@ const banderas = {
 function analizarEquipo(id) {
     goto(`/teams/${id}`);
 }
+
+let competicionSeleccionada = $state("Todos");
+let mostrarTodas = $state(false);
+
+const competiciones = [
+    { nombre: "Todos", pais: null },
+    { nombre: "LaLiga", pais: "España" },
+    { nombre: "Ligue 1", pais: "Francia" },
+    { nombre: "Serie A", pais: "Italia" },
+    { nombre: "Premier League", pais: "Inglaterra" }
+];
+
+// Equipos filtrados por competición
+let equiposFiltrados = $derived(
+    teams.filter(team => {
+
+        // Filtro por competición
+        const coincideCompeticion =
+            competicionSeleccionada === "Todos" ||
+            team.pais?.toLowerCase() ===
+            competiciones.find(c => c.nombre === competicionSeleccionada)?.pais.toLowerCase();
+
+        // Filtro por nombre
+        const coincideBusqueda =
+            team.nombre?.toLowerCase().includes(busquedaEquipo.toLowerCase());
+
+        return coincideCompeticion && coincideBusqueda;
+    })
+);
+
+// Mostrar 6 o todos los equipos
+
 </script>
 <svelte:head>
     <title>PredictPro | Inteligencia Deportiva</title>
@@ -192,21 +226,41 @@ function analizarEquipo(id) {
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
                         <span class="text-[#00ff66] text-xs font-black tracking-[0.25em]">CENTRO DE ANÁLISIS</span>
-                        <h2 class="text-4xl md:text-5xl font-black mt-3">Equipos <span class="text-[#00ff66]">destacados</span></h2>
-                        <p class="text-gray-500 mt-3">Consulta los enfrentamientos y sus indicadores estadísticos.</p>
+                        <h2 class="text-4xl md:text-5xl font-black mt-3">Competiciones <span class="text-[#00ff66]">destacadas</span></h2>
+                        <p class="text-gray-500 mt-3">Consulta los equipos de las mejores competiciones y sus indicadores estadísticos.</p>
                     </div>
                     <div class="relative">
-                        <input type="text" placeholder="Buscar equipo..." class="w-full md:w-72 bg-[#111a22] border border-white/10 rounded-xl px-5 py-3 pl-11 text-sm outline-none focus:border-[#00ff66] transition" />
+                        <input
+                            type="text"
+                            placeholder="Buscar equipo..."
+                            bind:value={busquedaEquipo}
+                            class="w-full md:w-72 bg-[#111a22] border border-white/10 rounded-xl px-5 py-3 pl-11 text-sm outline-none focus:border-[#00ff66] transition"
+                        />
+                    
                         <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 text-gray-500"></i>
                     </div>
                 </div>
 
                 <div class="flex flex-wrap gap-3 mb-10">
-                    <button class="px-5 py-2.5 rounded-full bg-[#00ff66] text-black font-bold text-sm">Todos</button>
-                    <button class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white text-sm">LaLiga</button>
-                    <button class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white text-sm">Premier League</button>
-                    <button class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white text-sm">Champions</button>
-                    <button class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white text-sm">Serie A</button>
+
+                    {#each competiciones as liga}
+                
+                        <button
+                            onclick={() => {
+                                competicionSeleccionada = liga.nombre;
+                                mostrarTodas = false;
+                            }}
+                            class={`px-5 py-2.5 rounded-full font-bold text-sm transition duration-300
+                                ${competicionSeleccionada === liga.nombre
+                                    ? "bg-[#00ff66] text-black"
+                                    : "bg-white/5 border border-white/10 text-gray-400 hover:text-white"
+                                }`}
+                        >
+                            {liga.nombre}
+                        </button>
+                
+                    {/each}
+                
                 </div>
 
                 
@@ -235,9 +289,8 @@ function analizarEquipo(id) {
                 </div>
 
                 <span class="text-xs text-gray-500">
-                    {teams.length} EQUIPOS REGISTRADOS
+                    {equiposFiltrados.length} EQUIPOS REGISTRADOS
                 </span>
-
             </div>
 
 
