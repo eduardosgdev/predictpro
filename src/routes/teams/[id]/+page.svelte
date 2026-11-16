@@ -515,6 +515,59 @@
         guardandoEstadisticas = false;
     }
     }
+
+    // Calcula la media por encuentro
+function calcularMedia(valor, encuentros) {
+    if (!encuentros) return 0;
+
+    return (Number(valor || 0) / encuentros);
+}
+
+// Clasifica al jugador según su media
+function obtenerPerfilJugador(jugador) {
+
+    const encuentros = Number(jugador.encuentros || 0);
+
+    const goles = calcularMedia(jugador.goles, encuentros);
+    const asistencias = calcularMedia(jugador.asistencias, encuentros);
+    const recibidas = calcularMedia(jugador.faltasrecibidas, encuentros);
+    const cometidas = calcularMedia(jugador.faltascometidas, encuentros);
+
+    return {
+        goles: {
+            media: goles,
+            categoria: goles >= 1 ? "Letal"
+                : goles >= 0.7 ? "Goleador"
+                : goles >= 0.4 ? "Ofensivo"
+                : goles >= 0.2 ? "Ocasional"
+                : "Poco goleador"
+        },
+
+        asistencias: {
+            media: asistencias,
+            categoria: asistencias >= 0.7 ? "Asistente élite"
+                : asistencias >= 0.4 ? "Creador"
+                : asistencias >= 0.2 ? "Colaborador"
+                : "Poco asistente"
+        },
+
+        faltasrecibidas: {
+            media: recibidas,
+            categoria: recibidas >= 2 ? "Muy desequilibrante"
+                : recibidas >= 1.5 ? "Provocador"
+                : recibidas >= 0.5 ? "Desequilibrante"
+                : "Poco incisivo"
+        },
+
+        faltascometidas: {
+            media: cometidas,
+            categoria: cometidas >= 2.5 ? "Agresivo"
+                : cometidas >= 1.8 ? "Intenso"
+                : cometidas >= 1 ? "Competitivo"
+                : "Disciplinado"
+        }
+    };
+}
 </script>
 
 <NavBar />
@@ -1100,9 +1153,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-5">
 
             {#each jugadores as jugador (jugador._id)}
-
+                {@const perfil = obtenerPerfilJugador(jugador)}
                 <article class="relative bg-[#111a22] rounded-2xl border border-white/10 overflow-hidden group hover:border-[#00ff66]/50 transition-all duration-300">
-
+                    
                     <!-- FRANJA SUPERIOR -->
                     <div class="h-1 bg-gradient-to-r from-[#00ff66] via-[#00ff66]/40 to-transparent"></div>
 
@@ -1221,7 +1274,60 @@
                             </div>
 
                         </div>
+                        <!-- PERFIL ESTADÍSTICO -->
+<div class="mt-5 pt-4 border-t border-white/5">
+    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+        Perfil estadístico · Media por encuentro
+    </h4>
 
+    <div class="grid grid-cols-2 gap-3">
+
+        <!-- GOLES -->
+        <div class="bg-white/5 rounded-xl p-3">
+            <span class="text-[10px] text-gray-400 uppercase">Goles</span>
+            <p class="text-lg font-black text-[#00ff66]">
+                {jugador.encuentros > 0 ? perfil.goles.media.toFixed(2) : "—"}
+            </p>
+            <span class="text-xs text-gray-300">
+                {perfil.goles.categoria}
+            </span>
+        </div>
+
+        <!-- ASISTENCIAS -->
+        <div class="bg-white/5 rounded-xl p-3">
+            <span class="text-[10px] text-gray-400 uppercase">Asistencias</span>
+            <p class="text-lg font-black text-blue-400">
+                {jugador.encuentros > 0 ? perfil.asistencias.media.toFixed(2) : "—"}
+            </p>
+            <span class="text-xs text-gray-300">
+                {perfil.asistencias.categoria}
+            </span>
+        </div>
+
+        <!-- FALTAS RECIBIDAS -->
+        <div class="bg-white/5 rounded-xl p-3">
+            <span class="text-[10px] text-gray-400 uppercase">Faltas recibidas</span>
+            <p class="text-lg font-black text-yellow-400">
+                {jugador.encuentros > 0 ? perfil.faltasrecibidas.media.toFixed(2) : "—"}
+            </p>
+            <span class="text-xs text-gray-300">
+                {perfil.faltasrecibidas.categoria}
+            </span>
+        </div>
+
+        <!-- FALTAS COMETIDAS -->
+        <div class="bg-white/5 rounded-xl p-3">
+            <span class="text-[10px] text-gray-400 uppercase">Faltas cometidas</span>
+            <p class="text-lg font-black text-red-400">
+                {jugador.encuentros > 0 ? perfil.faltascometidas.media.toFixed(2) : "—"}
+            </p>
+            <span class="text-xs text-gray-300">
+                {perfil.faltascometidas.categoria}
+            </span>
+        </div>
+
+    </div>
+</div>
                     </div>
 
                     <!-- FOOTER -->
