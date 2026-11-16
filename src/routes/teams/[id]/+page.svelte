@@ -1075,7 +1075,7 @@
     </div>
     <!-- PLANTILLA DE JUGADORES -->
 <!-- PLANTILLA DE JUGADORES -->
-<section class="mt-12 p-16">
+<section class="mt-12 ">
 
     <!-- CABECERA -->
     <div class="flex flex-col md:flex-row md:items-end justify-between mb-7 gap-3">

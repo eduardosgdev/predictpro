@@ -54,9 +54,9 @@ function analizarEquipo(id) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </svelte:head>
-
+ <NavBar />
 <section>
-    <NavBar />
+   
     <div class="min-h-screen bg-[#080d12] text-white font-['Inter']">
 
         <!-- HEADER -->
@@ -161,16 +161,16 @@ function analizarEquipo(id) {
                                 <span class="text-gray-400">Probabilidad estimada</span>
                                 <span class="text-[#00ff66] font-bold">Análisis IA</span>
                             </div>
-                            <div class="grid grid-cols-3 gap-3 text-center">
-                                <div class="rounded-xl bg-[#00ff66]/10 border border-[#00ff66]/20 p-4">
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="rounded-xl bg-[#00ff66]/10 border border-[#00ff66]/20 p-2">
                                     <p class="text-2xl font-black text-[#00ff66]">42%</p>
                                     <p class="text-xs text-gray-400 mt-1">Local</p>
                                 </div>
-                                <div class="rounded-xl bg-white/5 border border-white/10 p-4">
+                                <div class="rounded-xl bg-white/5 border border-white/10 p-2">
                                     <p class="text-2xl font-black">26%</p>
                                     <p class="text-xs text-gray-400 mt-1">Empate</p>
                                 </div>
-                                <div class="rounded-xl bg-white/5 border border-white/10 p-4">
+                                <div class="rounded-xl bg-white/5 border border-white/10 p-2">
                                     <p class="text-2xl font-black">32%</p>
                                     <p class="text-xs text-gray-400 mt-1">Visitante</p>
                                 </div>
@@ -188,7 +188,7 @@ function analizarEquipo(id) {
 
         <!-- PARTIDOS -->
         <section id="partidos" class="py-24 bg-[#0c131a] border-y border-white/5">
-            <div class="max-w-7xl mx-auto px-6">
+            <div class="max-w-7xl mx-auto px-2">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
                         <span class="text-[#00ff66] text-xs font-black tracking-[0.25em]">CENTRO DE ANÁLISIS</span>
@@ -213,7 +213,7 @@ function analizarEquipo(id) {
 
                     <!-- TARJETA 1 -->
                     
-    <section class="py-16 px-6 bg-[#0b1117] text-white">
+    <section class="py-16 px-2 bg-[#0b1117] text-white">
 
         <div class="max-w-7xl mx-auto">
 
@@ -444,7 +444,7 @@ function analizarEquipo(id) {
 
 
                         <!-- PIE TARJETA -->
-                        <div class="mt-6 flex justify-between items-center text-xs ">
+                        <div class="mt-6  text-ml ">
                             <button
                             onclick={() => analizarEquipo(team._id)}
                             class="ml-32 p-3  text-gray-900 rounded-xl bg-[#00ff66] font-bold group-hover:translate-x-1 transition"
