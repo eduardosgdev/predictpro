@@ -10,7 +10,7 @@
 
 <header class="sticky top-0 z-50 border-b border-white/10 bg-[#080d12]/90 backdrop-blur-xl">
 
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="max-w-10xl mx-auto px-6 py-4 flex items-center justify-between">
 
         <!-- LOGO: VUELVE A INICIO -->
         <a href="/" class="flex items-center gap-3 group">
