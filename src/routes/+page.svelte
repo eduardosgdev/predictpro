@@ -92,31 +92,6 @@ let equiposFiltrados = $derived(
    
     <div class="min-h-screen bg-[#080d12] text-white font-['Inter']">
 
-        <!-- HEADER -->
-        <header class="sticky top-0 z-50 border-b border-white/10 bg-[#00ff66]/90 backdrop-blur-xl">
-            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                
-
-                <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-black">
-                    <a href="#inicio" class="hover:text-white transition">Inicio</a>
-                    <a href="#partidos" class="hover:text-white transition">Equipos</a>
-                    <a href="#funciones" class="hover:text-white transition">Características</a>
-                    <a href="#precios" class="hover:text-white transition">Planes</a>
-                </nav>
-
-                <div class="hidden md:flex items-center gap-4">
-                    <a href="#" class="text-black hover:text-white font-semibold text-sm">Iniciar sesión</a>
-                    <a href="#" class="bg-[#00ff66] hover:bg-white text-black px-5 py-3 rounded-xl font-bold text-sm shadow-[0_0_20px_#00ff6633] transition">
-                        Crear cuenta <i class="fa-solid fa-arrow-right ml-2"></i>
-                    </a>
-                </div>
-
-                <a href="#partidos" class="md:hidden text-2xl text-[#00ff66]">
-                    <i class="fa-solid fa-bars"></i>
-                </a>
-            </div>
-        </header>
-
         <!-- HERO -->
         <section id="inicio" class="relative overflow-hidden py-24 md:py-32">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#00ff6618,_transparent_55%)]"></div>

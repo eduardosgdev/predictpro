@@ -13,7 +13,21 @@
     analizarEnfrentamiento,
     analizarJugadorContraEstiloDefensivo
 } from "#lib/utils/analisisEquipos.js";
-    
+import { onMount } from "svelte";
+    import { goto } from "$app/navigation";
+
+    let autorizado = $state(false);
+
+    onMount(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            alert("Opción disponible solo para usuarios registrados.");
+            return;
+        }
+
+        autorizado = true;
+    });
     let { data } = $props();
     let pronostico = $state(null);
     let prediccionesJugadores = $state([]);
@@ -496,6 +510,7 @@ function formatoNumero(valor) {
 }
 
 </script>
+{#if autorizado}
 <NavBar />
 <section class="min-h-screen bg-[#0b1117] text-white p-6">
 
@@ -1347,3 +1362,4 @@ function formatoNumero(valor) {
     
 
 </section>
+{/if}

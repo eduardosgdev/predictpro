@@ -4,7 +4,10 @@
 
     const enlaces = [
         { nombre: "Inicio", ruta: "/" },
+        {nombre :"Login", ruta:"/auth"},
         { nombre: "Predict Pro", ruta: "/predicts" }
+        
+
     ];
 </script>
 
