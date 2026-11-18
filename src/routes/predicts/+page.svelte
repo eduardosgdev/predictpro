@@ -343,7 +343,7 @@ try {
     cincoEstrellasVisitante = analizarContraCincoEstrellas(
         historialNormalizadoVisitante
     );
-    console.log(jugadoresLocal)
+    
     // ==========================================
     // OBTENER ESTILOS PROPIOS DE CADA EQUIPO
     // ==========================================
@@ -385,7 +385,7 @@ if (
     prediccionesJugadores = estadisticasJugadores.reduce((resultado, registro) => {
 
         const jugador = registro.player;
-
+        
         if (!jugador?._id) return resultado;
 
         const jugadorId = String(jugador._id);
@@ -416,6 +416,7 @@ if (
 
         resultado.push({
             nombre: jugador.nombre,
+            apellidos: jugador.apellidos,
             jugadorId,
             equipoId: equipoJugador,
             ...analisis
@@ -425,7 +426,7 @@ if (
 
     }, []);
 
-    console.log("PREDICCIONES INDIVIDUALES:", prediccionesJugadores);
+   
 
 } else {
     prediccionesJugadores = [];
@@ -947,7 +948,7 @@ function formatoNumero(valor) {
 
                         <div>
                             <h3 class="text-xl font-bold text-white">
-                                {jugador.nombre}
+                                {jugador.nombre} <span class="font-bold text-white">{jugador.apellidos}</span>
                             </h3>
 
                             <p class="text-sm text-gray-400 mt-1">

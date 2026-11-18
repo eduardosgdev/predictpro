@@ -324,10 +324,7 @@
         return (valor / club.totalencuentros) * 100;
     }
     $effect(() => {
-    console.log("PARTIDOS NORMALIZADOS:", partidosAnalizados);
-    console.log("PARTIDOS FILTRADOS:", partidosPorRival);
-    console.log("RENDIMIENTO:", rendimientoRival);
-    console.log("PROMEDIOS:", promediosRival);
+    
 });
     // modal
 

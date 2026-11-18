@@ -8,7 +8,6 @@ import 'flag-icons/css/flag-icons.min.css';
 let { data } = $props();
 
 let teams = data.teams ;
-console.log(teams)
 let mostrarTodos = $state(false);
 
 // Ordenar equipos por puntuación (5 a 1)
