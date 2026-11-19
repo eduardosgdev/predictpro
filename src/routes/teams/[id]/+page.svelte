@@ -527,6 +527,7 @@ function obtenerPerfilJugador(jugador) {
 
     const goles = calcularMedia(jugador.goles, encuentros);
     const asistencias = calcularMedia(jugador.asistencias, encuentros);
+    const tiros = calcularMedia(jugador.tirospuerta, encuentros);
     const recibidas = calcularMedia(jugador.faltasrecibidas, encuentros);
     const cometidas = calcularMedia(jugador.faltascometidas, encuentros);
 
@@ -546,6 +547,14 @@ function obtenerPerfilJugador(jugador) {
                 : asistencias >= 0.4 ? "Creador"
                 : asistencias >= 0.2 ? "Colaborador"
                 : "Poco asistente"
+        },
+        tirospuerta: {
+            media: tiros,
+            categoria: tiros >= 4 ? "Muy rematador"
+                : tiros >= 3 ? "Rematador frecuente"
+                : tiros >= 2 ? "Rematador"
+                : tiros >= 1 ? "Ocasional"
+                : "Poco rematador"
         },
 
         faltasrecibidas: {
@@ -1298,6 +1307,17 @@ function obtenerPerfilJugador(jugador) {
             </p>
             <span class="text-xs text-gray-300">
                 {perfil.asistencias.categoria}
+            </span>
+        </div>
+        <div class="bg-white/5 rounded-xl p-3">
+            <span class="text-[10px] text-gray-400 uppercase">
+                Remates a puerta
+            </span>
+            <p class="text-lg font-black text-purple-400">
+                {jugador.encuentros > 0 ? perfil.tirospuerta.media.toFixed(2) : "—"}
+            </p>
+            <span class="text-xs text-gray-300">
+                {perfil.tirospuerta.categoria}
             </span>
         </div>
 

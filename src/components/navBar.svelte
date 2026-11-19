@@ -13,16 +13,16 @@
 
 <header class="sticky top-0 z-50 border-b border-white/10 bg-[#080d12]/90 backdrop-blur-xl">
 
-    <div class="max-w-10xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="max-w-10xl mx-auto px-6 py-4 flex items-center justify-between gap-2">
 
         <!-- LOGO: VUELVE A INICIO -->
-        <a href="/" class="flex items-center gap-3 group">
+        <a href="/" class="flex items-center gap-1 md:gap-3 group">
 
-            <div class="w-10 h-10 rounded-xl bg-[#00ff66] flex items-center justify-center text-black text-xl shadow-[0_0_25px_#00ff6655] group-hover:shadow-[0_0_30px_#00ff6680] transition">
+            <div class="w-6 h-6 md:w-8 md:h-8 rounded-xl bg-[#00ff66] flex items-center justify-center text-black text-ml shadow-[0_0_25px_#00ff6655] group-hover:shadow-[0_0_30px_#00ff6680] transition">
                 <i class="fa-solid fa-chart-line"></i>
             </div>
 
-            <span class="text-2xl font-black tracking-tight text-white">
+            <span class="text-ml md:text-2xl font-black tracking-tight text-white">
                 Predict<span class="text-[#00ff66]">Pro</span>
             </span>
 
@@ -46,7 +46,7 @@
         </nav>
 
         <!-- ACCESO MÓVIL -->
-        <nav class="flex md:hidden items-center gap-2">
+        <nav class="flex md:hidden items-center ">
 
             {#each enlaces as enlace}
                 <a
