@@ -581,10 +581,10 @@ function obtenerPerfilJugador(jugador) {
 function abrirAnalisis1() {
 
 const token = localStorage.getItem("token");
-const user = JSON.parse(localStorage.getItem("user") || "null");
+
 
 // No hay sesión
-if (!token || !user) {
+if (!token ) {
     tipoModal = "login";
     mostrarModal = true;
     return;
@@ -609,7 +609,7 @@ try {
     }
 
     // Comprobar estado de la cuenta
-    if (user.estado!== "activo") {
+    if (payload.estado!== "activo") {
         tipoModal = "inactivo";
         mostrarModal = true;
         return;
