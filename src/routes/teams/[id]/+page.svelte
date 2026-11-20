@@ -537,25 +537,21 @@ function obtenerPerfilJugador(jugador) {
     return {
         goles: {
             media: goles,
-            categoria: goles >= 1 ? "Letal"
-                : goles >= 0.7 ? "Goleador"
-                : goles >= 0.4 ? "Ofensivo"
-                : goles >= 0.2 ? "Ocasional"
+            categoria: goles >= 1 ? "Matador"
+                : goles >= 0.5 ? "Ocasional"
                 : "Poco goleador"
         },
 
         asistencias: {
             media: asistencias,
-            categoria: asistencias >= 0.7 ? "Asistente élite"
-                : asistencias >= 0.4 ? "Creador"
-                : asistencias >= 0.2 ? "Colaborador"
+            categoria: asistencias >= 1 ? "Asistente élite"
+                : asistencias >= 0.5 ? "Poco creador"
                 : "Poco asistente"
         },
         tirospuerta: {
             media: tiros,
-            categoria: tiros >= 4 ? "Muy rematador"
-                : tiros >= 3 ? "Rematador frecuente"
-                : tiros >= 2 ? "Rematador"
+            categoria: tiros >= 3 ? "Muy rematador"
+                : tiros >= 2 ? "Rematador frecuente"
                 : tiros >= 1 ? "Ocasional"
                 : "Poco rematador"
         },
@@ -564,7 +560,7 @@ function obtenerPerfilJugador(jugador) {
             media: recibidas,
             categoria: recibidas >= 2 ? "Muy desequilibrante"
                 : recibidas >= 1.5 ? "Provocador"
-                : recibidas >= 0.5 ? "Desequilibrante"
+                : recibidas >= 0.5 ? "Timido"
                 : "Poco incisivo"
         },
 
