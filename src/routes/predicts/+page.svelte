@@ -16,18 +16,81 @@
 import { onMount } from "svelte";
     import { goto } from "$app/navigation";
 
-    let autorizado = $state(false);
-
+    let mostrarModal = $state(false);
+    let sesionActiva = $state(false);
+    let accesoPermitido = $state(false);
     onMount(() => {
-        const token = localStorage.getItem("token");
 
-        if (!token) {
-            alert("Opción disponible solo para usuarios registrados.");
-            return;
-        }
+const token = localStorage.getItem("token");
 
-        autorizado = true;
-    });
+// 1. Comprobar existencia del token
+if (!token) {
+    mostrarModal = true;
+    return;
+}
+
+try {
+
+    // 2. Decodificar JWT
+    const payload = JSON.parse(
+        atob(
+            token.split(".")[1]
+                .replace(/-/g, "+")
+                .replace(/_/g, "/")
+        )
+    );
+
+    // 3. Comprobar caducidad
+    if (!payload.exp || payload.exp * 1000 < Date.now()) {
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        mostrarModal = true;
+        return;
+    }
+
+    // 4. Comprobar estado de cuenta
+    if (payload.estadocuenta !== "activo") {
+        mostrarModal = true;
+        return;
+    }
+
+    // 5. Comprobar rol
+    if (!["admin", "user"].includes(payload.rol)) {
+        mostrarModal = true;
+        return;
+    }
+
+    // 6. Acceso permitido
+    sesionActiva = true;
+    accesoPermitido = true;
+
+} catch (error) {
+
+    // Token inválido
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    mostrarModal = true;
+}
+});
+
+
+    const enlaces = [
+        { nombre: "Inicio", ruta: "/" }
+    ];
+
+    // CONTROL DE ACCESO A PREDICTS
+    function cerrarModal() {
+        mostrarModal = false;
+    }
+
+    // IR AL LOGIN
+    function irLogin() {
+        mostrarModal = false;
+        goto("/auth");
+    }
     let { data } = $props();
     let pronostico = $state(null);
     let prediccionesJugadores = $state([]);
@@ -510,7 +573,7 @@ function formatoNumero(valor) {
 }
 
 </script>
-{#if autorizado}
+
 <NavBar />
 <section class="min-h-screen bg-[#0b1117] text-white p-6">
 
@@ -1362,4 +1425,60 @@ function formatoNumero(valor) {
     
 
 </section>
+
+
+<!-- MODAL DE ACCESO RESTRINGIDO -->
+{#if mostrarModal}
+
+    <div
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-5"
+    >
+
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            class="relative w-full max-w-md bg-[#0E131F] border border-white/10 rounded-2xl p-7 shadow-[0_0_50px_#00ff6615]"
+        >
+
+            <!-- ICONO -->
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/20 flex items-center justify-center mb-6">
+                <i class="fa-solid fa-lock text-2xl text-[#00ff66]"></i>
+            </div>
+
+            <div class="text-center">
+
+                <span class="text-[#00ff66] text-xs font-bold tracking-widest uppercase">
+                    ACCESO RESTRINGIDO
+                </span>
+
+                <h2
+                    id="modal-title"
+                    class="text-2xl font-black text-white mt-3 mb-3"
+                >
+                    ¡Un momento!
+                </h2>
+
+                <p class="text-gray-400 text-sm leading-relaxed mb-7">
+                    Para acceder a esta sección necesitas iniciar sesión
+                    con una cuenta activa de PredictPro.
+                    Identifícate para continuar.
+                </p>
+
+                <!-- ACEPTAR -->
+                <button
+                    type="button"
+                    onclick={irLogin}
+                    class="w-full py-3.5 rounded-xl bg-[#00ff66] text-black font-extrabold text-sm hover:bg-[#00e65c] transition-all hover:shadow-[0_0_25px_#00ff6640]"
+                >
+                    Aceptar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
 {/if}
+

@@ -60,16 +60,7 @@
 
         // Guardar JWT
         localStorage.setItem("token", response.data.token);
-
-        // Guardar perfil del usuario
-        localStorage.setItem("user", JSON.stringify({
-            id: response.data.user._id,
-            nombre: response.data.user.nombre,
-            apellidos: response.data.user.apellidos,
-            telefono: response.data.user.telefono,
-            rol: response.data.user.rol,
-            estadocuenta: response.data.user.estadocuenta
-        }));
+       
 
         successMessage =
             response.data.message || "¡Bienvenido a PredictPro!";

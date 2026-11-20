@@ -40,7 +40,7 @@
                         .replace(/_/g, "/")
                 )
             );
-
+            console.log(payload)
             // 3. Comprobar caducidad
             if (!payload.exp || payload.exp * 1000 < Date.now()) {
 
@@ -54,7 +54,7 @@
             }
 
             // 4. Comprobar estado de cuenta
-            if (payload.estadocuenta !== "activo") {
+            if (payload.estado !== "activo") {
 
                 tipoModal = "inactivo";
                 mostrarModal = true;
@@ -64,7 +64,7 @@
             // 5. Acceso permitido
             sesionActiva = true;
             goto("/predicts");
-
+            
         } catch (error) {
 
             // Token inválido
@@ -75,6 +75,7 @@
             tipoModal = "login";
             mostrarModal = true;
         }
+        
     }
 
     // CERRAR SESIÓN
