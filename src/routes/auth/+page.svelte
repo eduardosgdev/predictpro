@@ -3,6 +3,7 @@
     // @ts-nocheck
     import { goto } from "$app/navigation";
     import user from "../../conexiones/authAxios.js";
+    import NavBar from "../../components/navBar.svelte";
 
     // Pestaña activa
     let activeTab = $state("login");
@@ -141,7 +142,7 @@
         content="Accede o crea tu cuenta en PredictPro."
     />
 </svelte:head>
-
+<NavBar />
 <div class="auth-page">
 
     <!-- Fondo decorativo -->

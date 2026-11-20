@@ -51,7 +51,7 @@ try {
     }
 
     // 4. Comprobar estado de cuenta
-    if (payload.estadocuenta !== "activo") {
+    if (payload.estado !== "activo") {
         mostrarModal = true;
         return;
     }

@@ -3,7 +3,7 @@
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
-
+    
     let mostrarModal = $state(false);
     let tipoModal = $state("");
     let sesionActiva = $state(false);
@@ -40,7 +40,6 @@
                         .replace(/_/g, "/")
                 )
             );
-            console.log(payload)
             // 3. Comprobar caducidad
             if (!payload.exp || payload.exp * 1000 < Date.now()) {
 
