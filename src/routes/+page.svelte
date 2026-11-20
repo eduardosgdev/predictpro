@@ -3,6 +3,7 @@
 
 // @ts-ignore
 import NavBar from "../components/navBar.svelte"
+import { onMount } from "svelte";
 import { goto } from '$app/navigation';
 import 'flag-icons/css/flag-icons.min.css';
 let { data } = $props();
@@ -76,7 +77,23 @@ let equiposFiltrados = $derived(
     })
 );
 
-// Mostrar 6 o todos los equipos
+let mostrarIntro = $state(true);
+let salirIntro = $state(false); 
+
+onMount(() => {
+        const timer1 = setTimeout(() => {
+            salirIntro = true;
+        }, 1500);
+
+        const timer2 = setTimeout(() => {
+            mostrarIntro = false;
+        }, 1700);
+
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+        };
+    });
 
 </script>
 <svelte:head>
@@ -87,6 +104,20 @@ let equiposFiltrados = $derived(
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </svelte:head>
+{#if mostrarIntro}
+    <div class="fixed inset-0 z-[9999] bg-black flex items-center justify-center
+        transition-opacity duration-300 ease-out
+        {salirIntro ? 'opacity-0' : 'opacity-100'}">
+
+        <img
+            src="/imagenes/predictpro-portada.png"
+            alt="PredictPrO"
+            class="w-full h-full object-cover
+            animate-pulse motion-reduce:animate-none"
+        />
+
+    </div>
+{/if}
  <NavBar />
 <section>
    
@@ -472,7 +503,7 @@ let equiposFiltrados = $derived(
 
 
                         <!-- PIE TARJETA -->
-                        <div class="mt-6  text-ml ">
+                        <div class="mt-6  tex-ml ">
                             <button
                             onclick={() => analizarEquipo(team._id)}
                             class="ml-32 p-3  text-gray-900 rounded-xl bg-[#00ff66] font-bold group-hover:translate-x-1 transition"
