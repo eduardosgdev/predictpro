@@ -38,46 +38,57 @@
 
     // LOGIN
     const handleLogin = async (event) => {
-        event.preventDefault();
+    event.preventDefault();
 
-        errorMessage = "";
-        successMessage = "";
+    errorMessage = "";
+    successMessage = "";
 
-        try {
-            loading = true;
+    try {
+        loading = true;
 
-            const response = await user.post("/login", {
-                telefono: Number(telefonoLogin),
-                contraseña: contraseñaLogin
-            });
+        const response = await user.post("/login", {
+            telefono: Number(telefonoLogin),
+            contraseña: contraseñaLogin
+        });
 
-            // Comprobar respuesta del servidor
-            if (!response.data?.success || !response.data?.token) {
-                errorMessage =
-                    response.data?.message || "No se pudo iniciar sesión.";
-                return;
-            }
-
-            // Guardar JWT
-            localStorage.setItem("token", response.data.token);
-            successMessage =
-                response.data.message || "¡Bienvenido a PredictPro!";
-
-            // Redirigir al usuario
-            await goto("/");
-
-        } catch (error) {
-            console.error("Error al iniciar sesión:", error);
-
+        // Comprobar respuesta del servidor
+        if (!response.data?.success || !response.data?.token) {
             errorMessage =
-                error.response?.data?.message ||
-                error.message ||
-                "Error al iniciar sesión. Inténtalo de nuevo.";
-
-        } finally {
-            loading = false;
+                response.data?.message || "No se pudo iniciar sesión.";
+            return;
         }
-    };
+
+        // Guardar JWT
+        localStorage.setItem("token", response.data.token);
+
+        // Guardar perfil del usuario
+        localStorage.setItem("user", JSON.stringify({
+            id: response.data.user._id,
+            nombre: response.data.user.nombre,
+            apellidos: response.data.user.apellidos,
+            telefono: response.data.user.telefono,
+            rol: response.data.user.rol,
+            estadocuenta: response.data.user.estadocuenta
+        }));
+
+        successMessage =
+            response.data.message || "¡Bienvenido a PredictPro!";
+
+        // Redirigir al usuario
+        await goto("/");
+
+    } catch (error) {
+        console.error("Error al iniciar sesión:", error);
+
+        errorMessage =
+            error.response?.data?.message ||
+            error.message ||
+            "Error al iniciar sesión. Inténtalo de nuevo.";
+
+    } finally {
+        loading = false;
+    }
+};
 
     // REGISTRO
     const handleRegister = async (event) => {

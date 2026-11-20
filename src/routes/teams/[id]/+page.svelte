@@ -5,9 +5,12 @@
     import playerstatsAxios from "../../../conexiones/playerStatsAxios.js";
     import NavBar from "../../../components/navBar.svelte"
     let { data } = $props();
+    import { goto } from "$app/navigation";
 
     let partidos = $derived(data.partidos ?? []);
     let jugadores = $derived(data.jugadores ?? []);
+    let mostrarModal = $state(false);
+    let tipoModal = $state("");
 
     // FILTROS GENERALES
     let filtroCompeticion = $state("Todos");
@@ -574,6 +577,65 @@ function obtenerPerfilJugador(jugador) {
         }
     };
 }
+
+function abrirAnalisis1() {
+
+const token = localStorage.getItem("token");
+const user = JSON.parse(localStorage.getItem("user") || "null");
+
+// No hay sesión
+if (!token || !user) {
+    tipoModal = "login";
+    mostrarModal = true;
+    return;
+}
+
+try {
+
+    const payload = JSON.parse(
+        atob(token.split(".")[1]
+            .replace(/-/g, "+")
+            .replace(/_/g, "/"))
+    );
+
+    // Comprobar caducidad del token
+    if (!payload.exp || payload.exp * 1000 < Date.now()) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        tipoModal = "login";
+        mostrarModal = true;
+        return;
+    }
+
+    // Comprobar estado de la cuenta
+    if (user.estadocuenta !== "activo") {
+        tipoModal = "inactivo";
+        mostrarModal = true;
+        return;
+    }
+
+    // Acceso permitido
+    abrirAnalisis();
+
+} catch (error) {
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    tipoModal = "login";
+    mostrarModal = true;
+}
+}
+
+    function cerrarModal() {
+    mostrarModal = false;
+    }
+
+    function irLogin() {
+    mostrarModal = false;
+    goto("/auth");
+    }
 </script>
 
 <NavBar />
@@ -790,7 +852,7 @@ function obtenerPerfilJugador(jugador) {
                     </div>
                     <div class="mt-8 flex justify-center">
                         <button
-                            onclick={abrirAnalisis}
+                            onclick={abrirAnalisis1}
                             class="flex items-center gap-3 px-7 py-4 rounded-xl bg-[#00ff66] text-[#0b1117] font-black text-sm hover:bg-[#00e65c] transition duration-300 shadow-lg shadow-[#00ff66]/10"
                         >
                             <span>ANÁLISIS ESTADÍSTICO PRO</span>
@@ -802,7 +864,97 @@ function obtenerPerfilJugador(jugador) {
             </section>
 
         {/if}
+        {#if mostrarModal}
 
+        <div
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-5"
+            onclick={(e) => {
+                if (e.target === e.currentTarget) cerrarModal();
+            }}
+        >
+    
+            <div
+                role="dialog"
+                aria-modal="true"
+                class="relative w-full max-w-md bg-[#0E131F] border border-white/10 rounded-2xl p-7 shadow-[0_0_50px_#00ff6615]"
+            >
+    
+                <!-- CERRAR -->
+                <button
+                    type="button"
+                    onclick={cerrarModal}
+                    class="absolute top-4 right-4 text-gray-500 hover:text-white transition text-xl"
+                >
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+    
+                <!-- ICONO -->
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/20 flex items-center justify-center mb-6">
+    
+                    {#if tipoModal === "login"}
+                        <i class="fa-solid fa-lock text-2xl text-[#00ff66]"></i>
+                    {:else}
+                        <i class="fa-solid fa-user-shield text-2xl text-red-400"></i>
+                    {/if}
+    
+                </div>
+    
+                <div class="text-center">
+    
+                    {#if tipoModal === "login"}
+    
+                        <span class="text-[#00ff66] text-xs font-bold tracking-widest uppercase">
+                            ACCESO RESTRINGIDO
+                        </span>
+    
+                        <h2 class="text-2xl font-black text-white mt-3 mb-3">
+                            ¡Un momento!
+                        </h2>
+    
+                        <p class="text-gray-400 text-sm leading-relaxed mb-7">
+                            Esta opción está disponible únicamente para usuarios registrados.
+                            Inicia sesión o crea una cuenta para acceder a los análisis de PredictPro.
+                        </p>
+    
+                        <button
+                            type="button"
+                            onclick={irLogin}
+                            class="w-full py-3.5 rounded-xl bg-[#00ff66] text-black font-extrabold text-sm hover:bg-[#00e65c] transition"
+                        >
+                            Iniciar sesión / Registrarme
+                        </button>
+    
+                    {:else if tipoModal === "inactivo"}
+    
+                        <span class="text-red-400 text-xs font-bold tracking-widest uppercase">
+                            ACCESO NO DISPONIBLE
+                        </span>
+    
+                        <h2 class="text-2xl font-black text-white mt-3 mb-3">
+                            Cuenta no activa
+                        </h2>
+    
+                        <p class="text-gray-400 text-sm leading-relaxed mb-7">
+                            Tu cuenta no se encuentra activa actualmente.
+                            Para volver a acceder a esta función, ponte en contacto
+                            con el administrador de PredictPro.
+                        </p>
+    
+                        <button
+                            type="button"
+                            onclick={cerrarModal}
+                            class="w-full py-3.5 rounded-xl bg-[#00ff66] text-black font-extrabold text-sm hover:bg-[#00e65c] transition"
+                        >
+                            Entendido
+                        </button>
+    
+                    {/if}
+    
+                </div>
+            </div>
+        </div>
+    
+    {/if}
 
         <!-- FILTROS DE COMPETICIÓN -->
 

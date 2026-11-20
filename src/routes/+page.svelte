@@ -93,7 +93,7 @@ let equiposFiltrados = $derived(
     <div class="min-h-screen bg-[#080d12] text-white font-['Inter']">
 
         <!-- HERO -->
-        <section id="inicio" class="relative overflow-hidden py-24 md:py-32">
+        <section id="inicio" class="relative overflow-hidden py-6 md:py-12">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#00ff6618,_transparent_55%)]"></div>
             <div class="absolute top-20 left-0 w-72 h-72 bg-cyan-500/10 blur-[120px] rounded-full"></div>
 
@@ -195,7 +195,7 @@ let equiposFiltrados = $derived(
         </section>
 
         <!-- PARTIDOS -->
-        <section id="partidos" class="py-24 bg-[#0c131a] border-y border-white/5">
+        <section id="partidos" class="py-12 p-2 bg-[#0c131a] border-y border-white/5">
             <div class="max-w-7xl mx-auto px-2">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
@@ -203,6 +203,7 @@ let equiposFiltrados = $derived(
                         <h2 class="text-4xl md:text-5xl font-black mt-3">Competiciones <span class="text-[#00ff66]">destacadas</span></h2>
                         <p class="text-gray-500 mt-3">Consulta los equipos de las mejores competiciones y sus indicadores estadísticos.</p>
                     </div>
+                    
                     <div class="relative">
                         <input
                             type="text"
@@ -241,7 +242,7 @@ let equiposFiltrados = $derived(
 
                     <!-- TARJETA 1 -->
                     
-    <section class="py-16 px-2 bg-[#0b1117] text-white">
+    <section class=" px-2  text-white">
 
         <div class="max-w-7xl mx-auto">
 
@@ -254,7 +255,7 @@ let equiposFiltrados = $derived(
                     </p>
 
                     <h2 class="text-3xl md:text-4xl font-black">
-                        EQUIPOS <span class="text-[#00ff66]">DESTACADOS</span>
+                        EQUIPOS <span class="text-[#00ff66]">REGISTRADOS</span>
                     </h2>
 
                     <p class="text-gray-500 text-sm mt-2">
@@ -561,7 +562,7 @@ let equiposFiltrados = $derived(
                             <span class="text-[#00ff66] text-xs font-black tracking-[0.25em]">DATOS QUE MARCAN LA DIFERENCIA</span>
                             <h2 class="text-4xl md:text-5xl font-black mt-5">El fútbol también se <span class="text-[#00ff66]">analiza.</span></h2>
                             <p class="text-gray-400 mt-5 leading-relaxed">No te quedes únicamente con los resultados. Observa las estadísticas, los estilos y los comportamientos que hay detrás de cada encuentro.</p>
-                            <a href="#partidos" class="inline-block mt-8 bg-[#00ff66] text-black font-extrabold px-7 py-4 rounded-xl hover:shadow-[0_0_30px_#00ff6655] transition">Descubrir análisis <i class="fa-solid fa-arrow-right ml-2"></i></a>
+                            <a href="/aboutus" class="inline-block mt-8 bg-[#00ff66] text-black font-extrabold px-7 py-4 rounded-xl hover:shadow-[0_0_30px_#00ff6655] transition">Descubrir PredictPro <i class="fa-solid fa-arrow-right ml-2"></i></a>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-black/20 border border-white/10 rounded-2xl p-6"><i class="fa-solid fa-chart-column text-[#00ff66] text-2xl"></i><p class="text-3xl font-black mt-5">100K+</p><p class="text-gray-500 text-sm mt-2">Variables estadísticas</p></div>
@@ -583,7 +584,7 @@ let equiposFiltrados = $derived(
                     <p class="text-gray-500 mt-4">Accede a las herramientas que mejor se adapten a ti.</p>
                 </div>
 
-                <div class="grid lg:grid-cols-3 gap-7 items-stretch">
+                <div class="grid  lg:grid-cols-2 gap-7 items-stretch">
                     <!-- FREE -->
                     <div class="rounded-3xl border border-white/10 bg-[#111a22] p-8">
                         <h3 class="text-xl font-black">Free</h3>
@@ -591,9 +592,9 @@ let equiposFiltrados = $derived(
                         <div class="my-8"><span class="text-5xl font-black">0€</span><span class="text-gray-500"> / siempre</span></div>
                         <a href="#" class="block text-center border border-white/20 rounded-xl py-4 font-bold hover:bg-white/5 transition">Empezar gratis</a>
                         <div class="border-t border-white/10 mt-8 pt-7 space-y-5 text-sm text-gray-400">
-                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Análisis básicos</p>
-                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Partidos destacados</p>
-                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Estadísticas generales</p>
+                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Equipos Registrados</p>
+                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Historial de encuentros</p>
+                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Analizis de jugadores</p>
                             <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Acceso limitado</p>
                         </div>
                     </div>
@@ -603,19 +604,18 @@ let equiposFiltrados = $derived(
                         <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#00ff66] text-black rounded-full px-5 py-2 text-xs font-black tracking-wider">MÁS POPULAR</div>
                         <h3 class="text-xl font-black">PRO VIP</h3>
                         <p class="text-gray-400 text-sm mt-2">Para los amantes del análisis.</p>
-                        <div class="my-8"><span class="text-5xl font-black">9,99€</span><span class="text-gray-500"> / mes</span></div>
-                        <a href="#" class="block text-center bg-[#00ff66] text-black rounded-xl py-4 font-black hover:shadow-[0_0_25px_#00ff6666] transition">Elegir PRO VIP</a>
+                        <div class="my-8"><span class="text-5xl font-black">2,49€</span><span class="text-gray-500"> / mes</span></div>
+                        <a href="/auth" class="block text-center bg-[#00ff66] text-black rounded-xl py-4 font-black hover:shadow-[0_0_25px_#00ff6666] transition">Elegir PRO VIP</a>
                         <div class="border-t border-white/10 mt-8 pt-7 space-y-5 text-sm text-gray-300">
                             <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Análisis avanzados</p>
                             <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Probabilidades detalladas</p>
-                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Estilos ofensivos y defensivos</p>
                             <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Estadísticas completas</p>
-                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Historial de partidos</p>
+                            <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Función PredictPro</p>
                         </div>
                     </div>
 
                     <!-- ELITE -->
-                    <div class="rounded-3xl border border-white/10 bg-[#111a22] p-8">
+                    <!-- <div class="rounded-3xl border border-white/10 bg-[#111a22] p-8">
                         <h3 class="text-xl font-black">Elite Anual</h3>
                         <p class="text-gray-500 text-sm mt-2">La experiencia completa.</p>
                         <div class="my-8"><span class="text-5xl font-black">99€</span><span class="text-gray-500"> / año</span></div>
@@ -627,7 +627,7 @@ let equiposFiltrados = $derived(
                             <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Acceso anual</p>
                             <p><i class="fa-solid fa-check text-[#00ff66] mr-3"></i>Contenido exclusivo</p>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
                 <p class="text-center text-gray-600 text-xs mt-10">Las funciones y precios mostrados son ilustrativos y pueden modificarse.</p>
             </div>
