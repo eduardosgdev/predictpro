@@ -1442,8 +1442,8 @@ function formatoNumero(valor) {
         >
 
             <!-- ICONO -->
-            <div class="w-16 h-16 mx-auto rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/20 flex items-center justify-center mb-6">
-                <i class="fa-solid fa-lock text-2xl text-[#00ff66]"></i>
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/20 flex items-center justify-center mb-6
+                <i class="fa-solid fa-triangle-exclamation text-3xl text-yellow-400"></i>
             </div>
 
             <div class="text-center">

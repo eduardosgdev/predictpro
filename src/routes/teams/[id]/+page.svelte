@@ -609,7 +609,7 @@ try {
     }
 
     // Comprobar estado de la cuenta
-    if (user.estadocuenta !== "activo") {
+    if (user.estado!== "activo") {
         tipoModal = "inactivo";
         mostrarModal = true;
         return;

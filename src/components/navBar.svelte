@@ -259,7 +259,7 @@
             <div class="w-16 h-16 mx-auto rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/20 flex items-center justify-center mb-6">
 
                 {#if tipoModal === "login"}
-                    <i class="fa-solid fa-lock text-2xl text-[#00ff66]"></i>
+                <i class="fa-solid fa-triangle-exclamation text-3xl text-yellow-400"></i>
                 {:else}
                     <i class="fa-solid fa-user-shield text-2xl text-red-400"></i>
                 {/if}
