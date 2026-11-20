@@ -19,6 +19,8 @@ import { onMount } from "svelte";
     let mostrarModal = $state(false);
     let sesionActiva = $state(false);
     let accesoPermitido = $state(false);
+    let escudoLocal = "";
+let escudoVisitante = "";
     onMount(() => {
 
 const token = localStorage.getItem("token");
@@ -241,6 +243,7 @@ try {
     // ==========================================
     
     let cargandoAnalisis = $state(false);
+    let progresoCarga = $state(0);
     let errorAnalisis = $state("");
     
     // ==========================================
@@ -281,9 +284,14 @@ try {
                 defensivo: partido.estiloDefensivoPropio
             };
         }
+
+    
    
 async function obtenerDatosComparativa() {
-
+const intervaloCarga = setInterval(() => {
+        progresoCarga = Math.min(progresoCarga + 100 / 30, 100);
+    }, 100);
+    errorAnalisis = "";
 if (!equipoLocal || !equipoVisitante) {
     errorAnalisis = "Selecciona los dos equipos.";
     return;
@@ -297,7 +305,9 @@ if (equipoLocal === equipoVisitante) {
 try {
 
     cargandoAnalisis = true;
-    errorAnalisis = "";
+    progresoCarga = 0;
+
+    
 
     // ==========================================
     // LIMPIAR INFORMACIÓN ANTERIOR
@@ -333,15 +343,16 @@ try {
         jugadoresEquipoLocal,
         jugadoresEquipoVisitante
     ] = await Promise.all([
+        
 
         matchTeam.get(`/teammatch/${equipoLocal}`),
         matchTeam.get(`/teammatch/${equipoVisitante}`),
-
+        
         playerTeam.get(`/${equipoLocal}`),
         playerTeam.get(`/${equipoVisitante}`)
 
     ]);
-
+    
     // ==========================================
     // RECUPERAR HISTORIALES
     // ==========================================
@@ -550,7 +561,15 @@ if (
 
 } finally {
 
+    
+    clearInterval(intervaloCarga);
+
+    progresoCarga = 100;
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     cargandoAnalisis = false;
+    progresoCarga = 0
 
 }
 }
@@ -834,17 +853,39 @@ function formatoNumero(valor) {
             </div>
 
             <!-- MUESTRA HISTÓRICA -->
-            <div class="pronostico-muestras">
-                <div class="muestra-equipo local">
-                    <span>Partidos analizados · Local</span>
-                    <strong>{pronostico.muestra.local}</strong>
-                </div>
+            <div class="pronostico-muestras grid grid-cols-2 gap-4">
 
-                <div class="muestra-equipo visitante">
-                    <span>Partidos analizados · Visitante</span>
-                    <strong>{pronostico.muestra.visitante}</strong>
-                </div>
-            </div>
+    <!-- EQUIPO LOCAL -->
+    <div class="muestra-equipo local flex flex-col items-center gap-2">
+        <span class="text-xl text-gray-400 font-semibold">
+             Local
+        </span>
+
+        <img
+            src={equipoLocalSeleccionado.escudo}
+            alt="Escudo equipo local"
+            class="w-14 h-14 object-contain drop-shadow-lg"
+        />
+
+        
+    </div>
+
+    <!-- EQUIPO VISITANTE -->
+    <div class="muestra-equipo visitante flex flex-col items-center gap-2">
+        <span class="text-xl text-gray-400 font-semibold">
+             Visitante
+        </span>
+
+        <img
+            src={equipoVisitanteSeleccionado.escudo}
+            alt="Escudo equipo visitante"
+            class="w-14 h-14 object-contain drop-shadow-lg"
+        />
+
+        
+    </div>
+
+</div>
 
             <!-- PROBABILIDADES 1X2 -->
             <div class="pronostico-card">
@@ -1030,7 +1071,7 @@ function formatoNumero(valor) {
                             </h3>
 
                             <p class="text-sm text-gray-400 mt-1">
-                                Rival:
+                                Defensa rival:
                                 <span class="text-[#00ff66]">
                                     {formatoEstilo(jugador.estiloDefensivoAnalizado)}
                                 </span>
@@ -1354,71 +1395,6 @@ function formatoNumero(valor) {
 
         </section>
 
-
-        <!-- 3. ANÁLISIS POR COMBINACIÓN -->
-        <section class="bg-[#111a22] border border-white/10 rounded-2xl p-5 md:p-6">
-
-            <div class="mb-6">
-                <span class="text-purple-400 text-xs font-bold tracking-widest">
-                    ANÁLISIS 03
-                </span>
-
-                <h3 class="text-xl font-black mt-2">
-                    Combinaciones de estilos
-                </h3>
-
-                <p class="text-gray-500 text-xs mt-2">
-                    Análisis de las 12 combinaciones ofensivas y defensivas posibles.
-                </p>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[750px] text-sm text-left">
-
-                    <thead>
-                        <tr class="text-gray-400 border-b border-white/10">
-                            <th class="py-4 pr-4">Ataque rival</th>
-                            <th class="py-4 px-4">Defensa rival</th>
-                            <th class="py-4 px-4 text-[#00ff66]">
-                                {equipoLocalSeleccionado?.nombre}
-                            </th>
-                            <th class="py-4 px-4 text-blue-400">
-                                {equipoVisitanteSeleccionado?.nombre}
-                            </th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {#each analisisLocal.porCombinacionRival as grupo, i}
-                            <tr class="border-b border-white/5">
-
-                                <td class="py-4 pr-4 font-semibold">
-                                    {formatoEstilo(grupo.estiloOfensivo)}
-                                </td>
-
-                                <td class="py-4 px-4 font-semibold">
-                                    {formatoEstilo(grupo.estiloDefensivo)}
-                                </td>
-
-                                <td class="py-4 px-4 text-gray-300 text-xs leading-6">
-                                    {resumenEstadisticas(grupo)}
-                                </td>
-
-                                <td class="py-4 px-4 text-gray-300 text-xs leading-6">
-                                    {resumenEstadisticas(
-                                        analisisVisitante.porCombinacionRival[i]
-                                    )}
-                                </td>
-
-                            </tr>
-                        {/each}
-                    </tbody>
-
-                </table>
-            </div>
-
-        </section>
-
     </div>
 
     {/if}
@@ -1481,4 +1457,64 @@ function formatoNumero(valor) {
     </div>
 
 {/if}
+{#if cargandoAnalisis}
+    <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-5">
 
+        <div class="w-full max-w-sm bg-[#101827] border border-white/10 rounded-2xl p-7 shadow-2xl text-center">
+
+            <!-- ICONO -->
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/20 flex items-center justify-center mb-5">
+
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.8"
+                    stroke="currentColor"
+                    class="w-9 h-9 text-[#00ff66] animate-pulse"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3 3v18h18"
+                    />
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M7 14l4-4 4 4 6-7"
+                    />
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M17 7h4v4"
+                    />
+                </svg>
+            
+            </div>
+
+            <h3 class="text-white font-bold text-lg mb-2">
+                Analizando equipos
+            </h3>
+
+            <p class="text-gray-400 text-sm mb-6">
+                Evaluando historiales, estilos tácticos y estadísticas de jugadores...
+            </p>
+
+            <!-- BARRA DE PROGRESO -->
+            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-3">
+                <div
+                    class="h-full bg-[#00ff66] rounded-full transition-all duration-100"
+                    style={`width: ${progresoCarga}%`}
+                ></div>
+            </div>
+
+            <div class="flex justify-between text-xs">
+                <span class="text-gray-500">Procesando información</span>
+                <span class="text-[#00ff66] font-bold tabular-nums">
+                    {progresoCarga}%
+                </span>
+            </div>
+
+        </div>
+    </div>
+{/if}
