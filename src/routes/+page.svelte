@@ -8,6 +8,7 @@ import { goto } from '$app/navigation';
 import 'flag-icons/css/flag-icons.min.css';
 let { data } = $props();
 
+
 let teams = data.teams ;
 let mostrarTodos = $state(false);
 
@@ -344,19 +345,20 @@ onMount(() => {
                         <div class="flex items-center gap-5">
 
                             <!-- ESCUDO -->
-                            <div class="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-
-                                {#if team.escudo}
-                                    <img
-                                        src={team.escudo}
-                                        alt={team.nombre}
-                                        class="w-16 h-16 object-contain"
-                                    />
-                                {:else}
-                                    <span class="text-4xl">⚽</span>
-                                {/if}
-
-                            </div>
+                            <div
+    onclick={() => analizarEquipo(team._id)}
+    class="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center shrink-0 cursor-pointer hover:bg-[#00ff66]/10 transition"
+>
+    {#if team.escudo}
+        <img
+            src={team.escudo}
+            alt={team.nombre}
+            class="w-16 h-16 object-contain"
+        />
+    {:else}
+        <span class="text-4xl">⚽</span>
+    {/if}
+</div>
 
                             <!-- NOMBRE -->
                             <div class="flex-1 min-w-0">
@@ -500,18 +502,6 @@ onMount(() => {
                             </div>
 
                         </div>
-
-
-                        <!-- PIE TARJETA -->
-                        <div class="mt-6  tex-ml ">
-                            <button
-                            onclick={() => analizarEquipo(team._id)}
-                            class="ml-32 p-3  text-gray-900 rounded-xl bg-[#00ff66] font-bold group-hover:translate-x-1 transition"
-                        >
-                            Ver Equipo
-                            </button>
-                        </div>
-
                     </div>
 
                 {/each}

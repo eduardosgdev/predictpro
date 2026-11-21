@@ -304,6 +304,7 @@ function calcularPoisson(lambda) {
 
 
 // Calcula las probabilidades de victoria, empate y derrota
+
 function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
 
     const poissonLocal = calcularPoisson(golesLocal);
@@ -312,7 +313,11 @@ function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
     let victoriaLocal = 0;
     let empate = 0;
     let victoriaVisitante = 0;
+
+    let masDe15Goles = 0;
     let masDe25Goles = 0;
+    let masDe35Goles = 0;
+
     let ambosMarcan = 0;
 
     poissonLocal.forEach((probLocal, golesL) => {
@@ -320,7 +325,9 @@ function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
         poissonVisitante.forEach((probVisitante, golesV) => {
 
             const probabilidad = probLocal * probVisitante;
+            const golesTotales = golesL + golesV;
 
+            // Resultado del encuentro
             if (golesL > golesV) {
                 victoriaLocal += probabilidad;
             } else if (golesL === golesV) {
@@ -329,10 +336,20 @@ function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
                 victoriaVisitante += probabilidad;
             }
 
-            if (golesL + golesV >= 3) {
+            // Mercados de goles
+            if (golesTotales >= 2) {
+                masDe15Goles += probabilidad;
+            }
+
+            if (golesTotales >= 3) {
                 masDe25Goles += probabilidad;
             }
 
+            if (golesTotales >= 4) {
+                masDe35Goles += probabilidad;
+            }
+
+            // Ambos equipos marcan
             if (golesL > 0 && golesV > 0) {
                 ambosMarcan += probabilidad;
             }
@@ -343,10 +360,16 @@ function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
         victoriaLocal: victoriaLocal * 100,
         empate: empate * 100,
         victoriaVisitante: victoriaVisitante * 100,
+
+        masDe15Goles: masDe15Goles * 100,
         masDe25Goles: masDe25Goles * 100,
-        ambosMarcan: ambosMarcan * 100
+        masDe35Goles: masDe35Goles * 100,
+
+        ambosMarcan: ambosMarcan * 100,
+        ambosNoMarcan: (1 - ambosMarcan) * 100
     };
 }
+
 
 
 // Probabilidad de superar una línea de córners
@@ -378,20 +401,29 @@ export function analizarEnfrentamiento(
     // 1. Historial del local contra equipos
     // que tienen el perfil del visitante
 
-    const partidosLocal = historialLocal.filter(partido =>
+    let partidosLocal = historialLocal.filter(partido =>
         partido.estiloOfensivoRival === estilosVisitante.ofensivo &&
         partido.estiloDefensivoRival === estilosVisitante.defensivo
     );
 
-
+    if (!partidosLocal.length) {
+        partidosLocal = historialLocal.filter(partido =>
+            partido.estiloDefensivoRival === estilosVisitante.defensivo
+        );
+    }
     // 2. Historial del visitante contra equipos
     // que tienen el perfil del local
 
-    const partidosVisitante = historialVisitante.filter(partido =>
+    let partidosVisitante = historialVisitante.filter(partido =>
         partido.estiloOfensivoRival === estilosLocal.ofensivo &&
         partido.estiloDefensivoRival === estilosLocal.defensivo
     );
 
+    if (!partidosVisitante.length) {
+        partidosVisitante = historialVisitante.filter(partido =>
+            partido.estiloDefensivoRival === estilosLocal.defensivo
+        );
+    }
 
     // 3. Estadísticas de ambos grupos
 
@@ -474,37 +506,44 @@ export function analizarEnfrentamiento(
 
     // 8. Resultado final
 
-    return {
-        disponible: true,
+    // 8. Resultado final
 
-        muestra: {
-            local: partidosLocal.length,
-            visitante: partidosVisitante.length
-        },
+return {
+    disponible: true,
 
-        estadisticasLocal,
-        estadisticasVisitante,
+    muestra: {
+        local: partidosLocal.length,
+        visitante: partidosVisitante.length
+    },
 
-        goles: {
-            local: golesEsperadosLocal,
-            visitante: golesEsperadosVisitante,
-            total: golesTotalesEsperados
-        },
+    estadisticasLocal,
+    estadisticasVisitante,
 
-        corners: {
-            local: cornersEsperadosLocal,
-            visitante: cornersEsperadosVisitante,
-            total: cornersTotalesEsperados
-        },
+    goles: {
+        local: golesEsperadosLocal,
+        visitante: golesEsperadosVisitante,
+        total: golesTotalesEsperados
+    },
 
-        probabilidades,
+    corners: {
+        local: cornersEsperadosLocal,
+        visitante: cornersEsperadosVisitante,
+        total: cornersTotalesEsperados
+    },
 
-        mercados: {
-            masDe25Goles: probabilidades.masDe25Goles,
-            ambosMarcan: probabilidades.ambosMarcan,
-            corners: mercadosCorners
-        }
-    };
+    probabilidades,
+
+    mercados: {
+        masDe15Goles: probabilidades.masDe15Goles,
+        masDe25Goles: probabilidades.masDe25Goles,
+        masDe35Goles: probabilidades.masDe35Goles,
+        ambosMarcan: probabilidades.ambosMarcan,
+        ambosNoMarcan: probabilidades.ambosNoMarcan,
+        corners: mercadosCorners
+    }  
+    
+};
+
 }
 
 

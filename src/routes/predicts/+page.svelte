@@ -538,8 +538,7 @@ if (
         estilosLocalPartido,
         estilosVisitantePartido
     );
-
-    
+   
 
 } else {
     pronostico = null;
@@ -991,21 +990,40 @@ function formatoNumero(valor) {
             </div>
 
             <!-- MERCADOS DE GOLES -->
-            <div class="pronostico-card">
-                <h3>Mercados de goles</h3>
+            
+        <div class="pronostico-card">
+            <h3>Mercados de goles</h3>
 
-                <div class="mercados-grid">
-                    <div class="mercado-item">
-                        <span>Más de 2.5 goles</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.masDe25Goles)}</strong>
-                    </div>
+            <div class="mercados-grid">
 
-                    <div class="mercado-item">
-                        <span>Ambos equipos marcan</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.ambosMarcan)}</strong>
-                    </div>
+                <div class="mercado-item">
+                    <span>Más de 1.5 goles</span>
+                    <strong>{formatoPorcentaje(pronostico.mercados.masDe15Goles)}</strong>
                 </div>
+
+                <div class="mercado-item">
+                    <span>Más de 2.5 goles</span>
+                    <strong>{formatoPorcentaje(pronostico.mercados.masDe25Goles)}</strong>
+                </div>
+
+                <div class="mercado-item">
+                    <span>Más de 3.5 goles</span>
+                    <strong>{formatoPorcentaje(pronostico.mercados.masDe35Goles)}</strong>
+                </div>
+
+                <div class="mercado-item">
+                    <span>Ambos equipos marcan · Sí</span>
+                    <strong>{formatoPorcentaje(pronostico.mercados.ambosMarcan)}</strong>
+                </div>
+
+                <div class="mercado-item">
+                    <span>Ambos equipos marcan · No</span>
+                    <strong>{formatoPorcentaje(pronostico.mercados.ambosNoMarcan)}</strong>
+                </div>
+
             </div>
+        </div>
+
 
             <!-- MERCADOS DE CÓRNERS -->
             <div class="pronostico-card">

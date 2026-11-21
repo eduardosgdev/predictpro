@@ -1,16 +1,24 @@
 
 <script>
+// @ts-nocheck
+
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import apiTeams from "../conexiones/teamAxios";
     
     let mostrarModal = $state(false);
     let tipoModal = $state("");
     let sesionActiva = $state(false);
+    let equipos = $state([]);
+let busquedaEquipo = $state("");
+let mostrarResultados = $state(false);
+let cargandoEquipos = $state(false);
 
     // COMPROBAR SESIÓN AL CARGAR
     onMount(() => {
         sesionActiva = !!localStorage.getItem("token");
+        cargarEquipos();
     });
 
     const enlaces = [
@@ -99,13 +107,47 @@
         goto("/auth");
     }
 
+    async function cargarEquipos() {
+    try {
+        cargandoEquipos = true;
+
+        const response = await apiTeams.get("");
+
+        equipos = response.data.equipos || [];
+
+        console.log("Equipos cargados:", equipos.length);
+
+    } catch (error) {
+        console.error("Error cargando equipos:", error);
+    } finally {
+        cargandoEquipos = false;
+    }
+}
+
+// FILTRAR EQUIPOS
+let equiposFiltrados = $derived(
+    equipos
+        .filter(team =>
+            team.nombre?.toLowerCase().includes(busquedaEquipo.toLowerCase())
+        )
+        .slice(0, 8)
+);
+
+// NAVEGAR AL EQUIPO
+function seleccionarEquipo(team) {
+    busquedaEquipo = "";
+    mostrarResultados = false;
+
+    goto(`/teams/${team._id}`);
+}
+
 </script>
 
 
 <!-- HEADER -->
-<header class="sticky top-0 z-50 border-b border-white/10 bg-[#080d12]/90 backdrop-blur-xl">
+<header class="sticky top-0 z-50 border-b border-white/10 bg-[#080d12]/90 backdrop-blur-xl flex flex-col md:flex-row justify-between items-center">
 
-    <div class="max-w-10xl mx-auto px-6 py-4 flex items-center justify-between gap-2">
+    <div class=" px-6 py-4 flex items-center  gap-2">
 
         <!-- LOGO -->
         <a href="/" class="flex items-center gap-1 md:gap-3 group">
@@ -222,6 +264,80 @@
             {/if}
 
         </nav>
+
+    </div>
+    <!-- BUSCADOR DE EQUIPOS -->
+    <div class=" flex-1 mb-3 p-2 mt-3 w-full mx-2  md:mx-6">
+
+        <div>
+
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+
+            <input
+                type="text"
+                placeholder="Buscar equipo..."
+                bind:value={busquedaEquipo}
+                onfocus={() => mostrarResultados = true}
+                class="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-[#00ff66]/50 transition placeholder:text-gray-500"
+            />
+
+        </div>
+
+        {#if mostrarResultados && busquedaEquipo.trim().length > 0}
+
+            <div class="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-[#0E131F] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100]">
+
+                {#if cargandoEquipos}
+
+                    <div class="p-4 text-center text-gray-400 text-sm">
+                        Buscando equipos...
+                    </div>
+
+                {:else if equiposFiltrados.length > 0}
+
+                    {#each equiposFiltrados as team}
+
+                        <button
+                            type="button"
+                            onclick={() => seleccionarEquipo(team)}
+                            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#00ff66]/10 transition text-left group"
+                        >
+
+                            <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+
+                                {#if team.escudo}
+                                    <img
+                                        src={team.escudo}
+                                        alt={team.nombre}
+                                        class="w-7 h-7 object-contain"
+                                    />
+                                {:else}
+                                    <span>⚽</span>
+                                {/if}
+
+                            </div>
+
+                            <span class="text-sm font-semibold text-gray-300 group-hover:text-[#00ff66] transition">
+                                {team.nombre}
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right ml-auto text-xs text-gray-600 group-hover:text-[#00ff66]"></i>
+
+                        </button>
+
+                    {/each}
+
+                {:else}
+
+                    <div class="p-4 text-center text-gray-500 text-sm">
+                        No se encontraron equipos.
+                    </div>
+
+                {/if}
+
+            </div>
+
+        {/if}
 
     </div>
 </header>
