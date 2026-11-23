@@ -8,13 +8,16 @@
     import { goto } from "$app/navigation";
 
     let partidos = $derived(data.partidos ?? []);
+    console.log(partidos)
     let jugadores = $derived(data.jugadores ?? []);
+    let estadisticas = $derived(data.estadisticas ?? []);
     let mostrarModal = $state(false);
     let tipoModal = $state("");
 
     // FILTROS GENERALES
     let filtroCompeticion = $state("Todos");
-
+    let filtroRival = $state("Todos");
+    let filtroRival1 = $state("Todos");
     const competiciones = [
         "Todos",
         "Liga",
@@ -81,6 +84,8 @@
             const rival = esTeam1
                 ? partido.team2
                 : partido.team1;
+
+                
 
             // Goles del equipo analizado
             const golesFavor = Number(
@@ -164,21 +169,40 @@
         }).filter(Boolean)
     );
 
-    // FILTRAR POR COMPETICIÓN
-    let partidosFiltrados = $derived(
-        filtroCompeticion === "Todos"
-            ? partidos
-            : partidos.filter(
-                partido => partido.competicion === filtroCompeticion
-            )
-    );
+    
 
-    // MOSTRAR TRES O TODOS
-    let partidosVisibles = $derived(
-        mostrarTodos
-            ? partidosFiltrados
-            : partidosFiltrados.slice(0, 3)
-    );
+    // FILTRAR POR COMPETICIÓN
+    // FILTRAR POR COMPETICIÓN Y PUNTUACIÓN DEL RIVAL
+    // FILTRAR POR COMPETICIÓN Y PUNTUACIÓN DEL RIVAL
+let partidosFiltrados = $derived(
+    partidos.filter(partido => {
+
+        // Buscar el partido correspondiente en los datos analizados
+        const partidoAnalizado = partidosAnalizados.find(
+            item => String(item.id) === String(partido._id)
+        );
+
+        if (!partidoAnalizado) return false;
+
+        const coincideCompeticion =
+            filtroCompeticion === "Todos" ||
+            partido.competicion === filtroCompeticion;
+
+        const coincidePuntuacion =
+            filtroRival1 === "Todos" ||
+            partidoAnalizado.rival.puntuacion === Number(filtroRival1);
+
+        return coincideCompeticion && coincidePuntuacion;
+    })
+);
+
+// MOSTRAR TRES O TODOS
+let partidosVisibles = $derived(
+    mostrarTodos
+        ? partidosFiltrados
+        : partidosFiltrados.slice(0, 3)
+);
+
 
     // FILTRAR ENCUENTROS SEGÚN EL PERFIL DEL RIVAL
     let partidosPorRival = $derived(
@@ -990,9 +1014,26 @@ try {
                 >
                     {competicion}
                 </button>
+                
 
                     {/each}
 
+                </div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    {#each ["Todos", 1, 2, 3, 4, 5] as puntuacion}
+                        <button
+                            onclick={() => filtroRival1 = String(puntuacion)}
+                            class={`px-4 py-2 rounded-lg text-xs font-bold transition border ${
+                                filtroRival1 === String(puntuacion)
+                                    ? "bg-[#00ff66] text-[#0b1117] border-[#00ff66]"
+                                    : "bg-[#111a22] text-gray-400 border-white/10 hover:border-[#00ff66]/50"
+                            }`}
+                        >
+                            {puntuacion === "Todos"
+                                ? "Todas las estrellas"
+                                : `${puntuacion} ★`}
+                        </button>
+                    {/each}
                 </div>
 
             </div>
@@ -1005,6 +1046,14 @@ try {
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
 
             {#each partidosVisibles as partido (partido._id)}
+
+    {@const estadisticasPartido = estadisticas.find(
+        item => String(item.matchId) === String(partido._id)
+    )}
+
+    {@const estadisticasEquipo = estadisticasPartido?.estadisticas.filter(stat =>
+        jugadores.some(jugador => String(jugador._id) === String(stat.player))
+    ) || []}
 
                 <article class="bg-[#111a22] border border-white/10 rounded-2xl overflow-hidden hover:border-[#00ff66]/40 transition duration-300">
 
@@ -1231,7 +1280,72 @@ try {
                         {/if}
 
                     </div>
+                    <!-- ESTADÍSTICAS INDIVIDUALES DEL EQUIPO -->
 
+<div class="p-4 border-t border-white/5">
+
+    <h3 class="text-xs font-black text-[#00ff66] mb-4">
+        RENDIMIENTO DE JUGADORES
+    </h3>
+
+    {#each estadisticasEquipo as stat (stat._id)}
+
+        {@const jugador = jugadores.find(
+            j => String(j._id) === String(stat.player)
+        )}
+
+        {#if jugador}
+            <div class="flex justify-between items-center py-3 border-b border-white/5">
+
+                <span class="text-sm font-bold text-white">
+                    {jugador.nombre} {jugador.apellidos}
+                </span>
+
+                <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+
+                    <!-- GOLES -->
+                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                        <span class="text-xl mb-1">⚽</span>
+                        <span class="text-xl font-black text-white tabular-nums">{stat.goles}</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Goles</span>
+                    </div>
+                
+                    <!-- ASISTENCIAS -->
+                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                        <span class="text-xl mb-1">🎯</span>
+                        <span class="text-xl font-black text-white tabular-nums">{stat.asistencias}</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Asistencias</span>
+                    </div>
+                
+                    <!-- TIROS A PUERTA -->
+                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                        <span class="text-xl mb-1">🥅</span>
+                        <span class="text-xl font-black text-white tabular-nums">{stat.tirospuerta}</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Tiros a puerta</span>
+                    </div>
+                
+                    <!-- FALTAS COMETIDAS -->
+                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                        <span class="text-xl mb-1">🟨</span>
+                        <span class="text-xl font-black text-white tabular-nums">{stat.faltascometidaspartido}</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Faltas cometidas</span>
+                    </div>
+                
+                    <!-- FALTAS RECIBIDAS -->
+                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                        <span class="text-xl mb-1">🟢</span>
+                        <span class="text-xl font-black text-white tabular-nums">{stat.faltasrecibidaspartido}</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Faltas recibidas</span>
+                    </div>
+                
+                </div>
+
+            </div>
+        {/if}
+
+    {/each}
+
+</div>
                 </article>
 
             {/each}

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import matchTeam from "../../../conexiones/matchAxios.js";
 import playerTeam from "../../../conexiones/playerAxios.js";
+import playerstatsAxios from "../../../conexiones/playerStatsAxios.js";
 
 export async function load({params}) {
     try {
@@ -8,9 +9,21 @@ export async function load({params}) {
         const responsePlayer = await playerTeam.get(`/${params.id}`);
 
         const players = responsePlayer.data.players;
+
+        const estadisticas = await Promise.all(
+            response.data.map(async (partido) => {
+                const responseStats = await playerstatsAxios.get(`/match/${partido._id}`);
+
+                return {
+                    matchId: partido._id,
+                    estadisticas: responseStats.data.estadisticas
+                };
+            })
+        );
         return {
-            partidos:response.data,
+            partidos: response.data,
             jugadores: players,
+            estadisticas,
             equipoId: params.id
         }
     } catch (error) {
@@ -19,7 +32,8 @@ export async function load({params}) {
         return {
             partidos: [],
             jugadores: [],
+            estadisticas: [],
             equipoId: params.id
+        }
     }
-}
 }
