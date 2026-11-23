@@ -505,6 +505,7 @@ if (
         resultado.push({
             nombre: jugador.nombre,
             apellidos: jugador.apellidos,
+            posicion:jugador.posicion,
             jugadorId,
             equipoId: equipoJugador,
             ...analisis
@@ -1084,9 +1085,14 @@ function formatoNumero(valor) {
                     <div class="flex justify-between items-start gap-3">
 
                         <div>
-                            <h3 class="text-xl font-bold text-white">
-                                {jugador.nombre} <span class="font-bold text-white">{jugador.apellidos}</span>
-                            </h3>
+                            <div class="flex flex-col">
+                                <h3 class="text-xl font-bold text-white">
+                                        {jugador.nombre} <span class="font-bold text-white">{jugador.apellidos}</span>
+                                        
+                                    </h3>
+                                    <p class="text-blue-500 font-bold">{jugador.posicion}</p>
+                            </div>
+                            
 
                             <p class="text-sm text-gray-400 mt-1">
                                 Defensa rival:

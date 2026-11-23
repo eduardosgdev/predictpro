@@ -57,7 +57,8 @@ const competiciones = [
     { nombre: "LaLiga", pais: "España" },
     { nombre: "Ligue 1", pais: "Francia" },
     { nombre: "Serie A", pais: "Italia" },
-    { nombre: "Premier League", pais: "Inglaterra" }
+    { nombre: "Bundesliga", pais: "Alemania" },
+    { nombre: "Liga Portuguesa", pais: "Portugal" }
 ];
 
 // Equipos filtrados por competición
@@ -346,19 +347,19 @@ onMount(() => {
 
                             <!-- ESCUDO -->
                             <div
-    onclick={() => analizarEquipo(team._id)}
-    class="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center shrink-0 cursor-pointer hover:bg-[#00ff66]/10 transition"
->
-    {#if team.escudo}
-        <img
-            src={team.escudo}
-            alt={team.nombre}
-            class="w-16 h-16 object-contain"
-        />
-    {:else}
-        <span class="text-4xl">⚽</span>
-    {/if}
-</div>
+                                onclick={() => analizarEquipo(team._id)}
+                                class="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center shrink-0 cursor-pointer hover:bg-[#00ff66]/10 transition"
+                            >
+                                {#if team.escudo}
+                                    <img
+                                        src={team.escudo}
+                                        alt={team.nombre}
+                                        class="w-16 h-16 object-contain"
+                                    />
+                                {:else}
+                                    <span class="text-4xl">⚽</span>
+                                {/if}
+                            </div>
 
                             <!-- NOMBRE -->
                             <div class="flex-1 min-w-0">
