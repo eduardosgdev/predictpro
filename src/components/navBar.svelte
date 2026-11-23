@@ -115,8 +115,6 @@ let cargandoEquipos = $state(false);
 
         equipos = response.data.equipos || [];
 
-        console.log("Equipos cargados:", equipos.length);
-
     } catch (error) {
         console.error("Error cargando equipos:", error);
     } finally {
@@ -317,10 +315,21 @@ function seleccionarEquipo(team) {
 
                             </div>
 
-                            <span class="text-sm font-semibold text-gray-300 group-hover:text-[#00ff66] transition">
-                                {team.nombre}
-                            </span>
-
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-sm font-semibold text-gray-300 group-hover:text-[#00ff66] transition">
+                                    {team.nombre}
+                                </span>
+                            
+                                <div class="flex items-center gap-0.5 mt-1">
+                                    {#each [1, 2, 3, 4, 5] as estrella}
+                                        <span class:text-yellow-400={estrella <= Number(team.puntuacion)}
+                                              class:text-gray-600={estrella > Number(team.puntuacion)}
+                                              class="text-xs">
+                                            ★
+                                        </span>
+                                    {/each}
+                                </div>
+                            </div>
                             <i class="fa-solid fa-chevron-right ml-auto text-xs text-gray-600 group-hover:text-[#00ff66]"></i>
 
                         </button>

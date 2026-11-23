@@ -8,7 +8,6 @@
     import { goto } from "$app/navigation";
 
     let partidos = $derived(data.partidos ?? []);
-    console.log(partidos)
     let jugadores = $derived(data.jugadores ?? []);
     let estadisticas = $derived(data.estadisticas ?? []);
     let mostrarModal = $state(false);
