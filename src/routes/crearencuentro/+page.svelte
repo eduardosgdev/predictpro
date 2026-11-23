@@ -492,7 +492,7 @@
                         <select class="campo" bind:value={competicion}>
                             <option value="Liga">Liga</option>
                             <option value="Copa">Copa</option>
-                            <option value="Champions ">Champions League</option>
+                            <option value="Champions">Champions League</option>
                             <option value="Euro">Europa League</option>
                             
                         </select>

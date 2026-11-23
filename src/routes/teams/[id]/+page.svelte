@@ -29,6 +29,7 @@
     let filtroPuntuacionRival = $state("Todos");
     let filtroDefensivoRival = $state("Todos");
     let filtroOfensivoRival = $state("Todos");
+    let filtroEstiloDefensivo = $state("Todos");
 
     const estilosOfensivos = [
         "juego_interior",
@@ -191,7 +192,13 @@ let partidosFiltrados = $derived(
             filtroRival1 === "Todos" ||
             partidoAnalizado.rival.puntuacion === Number(filtroRival1);
 
-        return coincideCompeticion && coincidePuntuacion;
+        const coincideEstiloDefensivo =
+        filtroEstiloDefensivo === "Todos" ||
+        partidoAnalizado.rival.estiloDefensivo === filtroEstiloDefensivo;
+
+        return coincideCompeticion &&
+            coincidePuntuacion &&
+            coincideEstiloDefensivo;
     })
 );
 
@@ -979,7 +986,7 @@ try {
 
         <section class="mb-7">
 
-            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+            <div class="flex flex-row xl:flex-row xl:items-center justify-between gap-5">
 
                 <div>
 
@@ -998,47 +1005,72 @@ try {
                 </div>
 
                 <!-- BOTONES DE FILTRO -->
-
-                <div class="flex flex-wrap gap-2">
-
-                    {#each competiciones as competicion}
-
-                    <button
-                    onclick={() => cambiarFiltro(competicion)}
-                    class={`px-4 py-2 rounded-lg text-xs font-bold transition border ${
-                        filtroCompeticion === competicion
-                            ? "bg-[#00ff66] text-[#0b1117] border-[#00ff66]"
-                            : "bg-[#111a22] text-gray-400 border-white/10"
-                    }`}
-                >
-                    {competicion}
-                </button>
-                
-
-                    {/each}
-
-                </div>
-                <div class="flex flex-wrap gap-2 mt-3">
-                    {#each ["Todos", 1, 2, 3, 4, 5] as puntuacion}
-                        <button
-                            onclick={() => filtroRival1 = String(puntuacion)}
-                            class={`px-4 py-2 rounded-lg text-xs font-bold transition border ${
-                                filtroRival1 === String(puntuacion)
-                                    ? "bg-[#00ff66] text-[#0b1117] border-[#00ff66]"
-                                    : "bg-[#111a22] text-gray-400 border-white/10 hover:border-[#00ff66]/50"
-                            }`}
-                        >
-                            {puntuacion === "Todos"
-                                ? "Todas las estrellas"
-                                : `${puntuacion} ★`}
-                        </button>
-                    {/each}
-                </div>
-
-            </div>
+               
+             </div>
 
         </section>
+            <div class="flex flex-wrap lg:flex-row mb-4 gap-5">
 
+                                <div class="flex flex-wrap gap-2">
+
+                                    {#each competiciones as competicion}
+
+                                    <button
+                                    onclick={() => cambiarFiltro(competicion)}
+                                    class={`px-4 py-2 rounded-lg text-xs font-bold transition border ${
+                                        filtroCompeticion === competicion
+                                            ? "bg-[#00ff66] text-[#0b1117] border-[#00ff66]"
+                                            : "bg-[#111a22] text-gray-400 border-white/10"
+                                    }`}
+                                >
+                                    {competicion}
+                                </button>
+                                
+
+                                    {/each}
+
+                                </div>
+                                <div class="flex flex-wrap gap-2 ">
+                                    {#each ["Todos", 1, 2, 3, 4, 5] as puntuacion}
+                                        <button
+                                            onclick={() => filtroRival1 = String(puntuacion)}
+                                            class={`px-4 py-2 rounded-lg text-xs font-bold transition border ${
+                                                filtroRival1 === String(puntuacion)
+                                                    ? "bg-[#00ff66] text-[#0b1117] border-[#00ff66]"
+                                                    : "bg-[#111a22] text-gray-400 border-white/10 hover:border-[#00ff66]/50"
+                                            }`}
+                                        >
+                                            {puntuacion === "Todos"
+                                                ? "Todas las estrellas"
+                                                : `${puntuacion} ★`}
+                                        </button>
+                                    {/each}
+                                </div>
+                                <div class="flex flex-wrap gap-2 ">
+                                    {#each [
+                                        "Todos",
+                                        "presion_alta",
+                                        "bloque_medio",
+                                        "bloque_bajo"
+                                    ] as estilo}
+                                        <button
+                                            onclick={() => filtroEstiloDefensivo = estilo}
+                                            class={`px-4 py-2 rounded-lg text-xs font-bold transition border ${
+                                                filtroEstiloDefensivo === estilo
+                                                    ? "bg-[#00ff66] text-[#0b1117] border-[#00ff66]"
+                                                    : "bg-[#111a22] text-gray-400 border-white/10 hover:border-[#00ff66]/50"
+                                            }`}
+                                        >
+                                            {{
+                                                "Todos": "Todos los estilos",
+                                                "presion_alta": "Presión alta",
+                                                "bloque_medio": "Bloque medio",
+                                                "bloque_bajo": "Bloque bajo"
+                                            }[estilo]}
+                                        </button>
+                                    {/each}
+                                </div>
+                            </div>
 
         <!-- GRID DE PARTIDOS -->
 
@@ -1242,20 +1274,6 @@ try {
                     </div>
 
 
-                    <!-- PIE DE TARJETA -->
-
-                    <div class="px-5 py-3 bg-[#0b1117]/70 border-t border-white/5 flex justify-between items-center">
-
-                        <span class="text-[9px] text-gray-600 font-bold tracking-widest">
-                            PREDICTPRO DATA
-                        </span>
-
-                        <span class="text-[9px] text-gray-500">
-                            ID: {partido._id?.slice(-6).toUpperCase()}
-                        </span>
-
-                    </div>
-
                     <!-- REGISTRO DE ESTADÍSTICAS INDIVIDUALES -->
                     <div class="p-4 border-t border-white/5">
 
@@ -1281,70 +1299,70 @@ try {
                     </div>
                     <!-- ESTADÍSTICAS INDIVIDUALES DEL EQUIPO -->
 
-<div class="p-4 border-t border-white/5">
+                    <div class="p-4 border-t border-white/5 flex flex-col  ">
 
-    <h3 class="text-xs font-black text-[#00ff66] mb-4">
-        RENDIMIENTO DE JUGADORES
-    </h3>
+                        <h3 class="text-xs font-black text-center text-[#383ddd] mb-4">
+                            RENDIMIENTO DE JUGADORES
+                        </h3>
 
-    {#each estadisticasEquipo as stat (stat._id)}
+                        {#each estadisticasEquipo as stat (stat._id)}
 
-        {@const jugador = jugadores.find(
-            j => String(j._id) === String(stat.player)
-        )}
+                            {@const jugador = jugadores.find(
+                                j => String(j._id) === String(stat.player)
+                            )}
 
-        {#if jugador}
-            <div class="flex justify-between items-center py-3 border-b border-white/5">
+                            {#if jugador}
+                                <div class="flex flex-col justify-between items-center py-3 border-b border-white/5">
 
-                <span class="text-sm font-bold text-white">
-                    {jugador.nombre} {jugador.apellidos}
-                </span>
+                                    <span class="text-sm font-bold p-2 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 ">
+                                        {jugador.nombre} {jugador.apellidos}
+                                    </span>
 
-                <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                                    <div class="mt-3 grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
 
-                    <!-- GOLES -->
-                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                        <span class="text-xl mb-1">⚽</span>
-                        <span class="text-xl font-black text-white tabular-nums">{stat.goles}</span>
-                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Goles</span>
+                                        <!-- GOLES -->
+                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                            <span class="text-xl mb-1">⚽</span>
+                                            <span class="text-xl font-black text-white tabular-nums">{stat.goles}</span>
+                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Goles</span>
+                                        </div>
+                                    
+                                        <!-- ASISTENCIAS -->
+                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                            <span class="text-xl mb-1">🎯</span>
+                                            <span class="text-xl font-black text-white tabular-nums">{stat.asistencias}</span>
+                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Asist.</span>
+                                        </div>
+                                    
+                                        <!-- TIROS A PUERTA -->
+                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                            <span class="text-xl mb-1">🥅</span>
+                                            <span class="text-xl font-black text-white tabular-nums">{stat.tirospuerta}</span>
+                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Tiros/puerta</span>
+                                        </div>
+                                    
+                                        <!-- FALTAS COMETIDAS -->
+                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                            <span class="text-xl mb-1">🟨</span>
+                                            <span class="text-xl font-black text-white tabular-nums">{stat.faltascometidaspartido}</span>
+                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold text-center">Faltas cometidas</span>
+                                        </div>
+                                    
+                                        <!-- FALTAS RECIBIDAS -->
+                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                            <span class="text-xl mb-1">🟢</span>
+                                            <span class="text-xl font-black text-white tabular-nums">{stat.faltasrecibidaspartido}</span>
+                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold text-center">Faltas recibidas</span>
+                                        </div>
+                                    
+                                    </div>
+
+                                </div>
+                            {/if}
+
+                        {/each}
+
                     </div>
-                
-                    <!-- ASISTENCIAS -->
-                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                        <span class="text-xl mb-1">🎯</span>
-                        <span class="text-xl font-black text-white tabular-nums">{stat.asistencias}</span>
-                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Asistencias</span>
-                    </div>
-                
-                    <!-- TIROS A PUERTA -->
-                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                        <span class="text-xl mb-1">🥅</span>
-                        <span class="text-xl font-black text-white tabular-nums">{stat.tirospuerta}</span>
-                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Tiros a puerta</span>
-                    </div>
-                
-                    <!-- FALTAS COMETIDAS -->
-                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                        <span class="text-xl mb-1">🟨</span>
-                        <span class="text-xl font-black text-white tabular-nums">{stat.faltascometidaspartido}</span>
-                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Faltas cometidas</span>
-                    </div>
-                
-                    <!-- FALTAS RECIBIDAS -->
-                    <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                        <span class="text-xl mb-1">🟢</span>
-                        <span class="text-xl font-black text-white tabular-nums">{stat.faltasrecibidaspartido}</span>
-                        <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Faltas recibidas</span>
-                    </div>
-                
-                </div>
-
-            </div>
-        {/if}
-
-    {/each}
-
-</div>
                 </article>
 
             {/each}
@@ -1612,10 +1630,6 @@ try {
                     <div class="px-5 py-3 bg-[#0b1117]/80 border-t border-white/5 flex justify-between items-center">
                         <span class="text-[9px] text-gray-600 font-bold tracking-widest">
                             PREDICTPRO
-                        </span>
-
-                        <span class="text-[9px] text-gray-500 font-mono">
-                            PLAYER #{jugador._id?.slice(-6).toUpperCase() || "------"}
                         </span>
                     </div>
 
