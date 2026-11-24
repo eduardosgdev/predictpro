@@ -2464,9 +2464,9 @@
     display: flex;
     align-items: flex-start;
     gap: 9px;
-    color: #718294;
-    font-size: 11px;
-    line-height: 1.7;
+    color: #e71313;
+    font-size: 24px;
+    line-height:2,5;
     margin: 22px 0 0;
     padding-top: 18px;
     border-top: 1px solid var(--borde);

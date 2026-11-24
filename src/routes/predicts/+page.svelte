@@ -962,8 +962,45 @@ function formatoNumero(valor) {
                         </div>
                     </div>
                 </div>
-
                 <div class="pronostico-card">
+                <h3>Mercados de goles</h3>
+
+                <div class="mercados-grid">
+
+                    <div class="mercado-item">
+                        <span>Más de 1.5 goles</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.masDe15Goles)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Más de 2.5 goles</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.masDe25Goles)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Más de 3.5 goles</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.masDe35Goles)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Ambos equipos marcan · Sí</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.ambosMarcan)}</strong>
+                    </div>
+
+                    <div class="mercado-item">
+                        <span>Ambos equipos marcan · No</span>
+                        <strong>{formatoPorcentaje(pronostico.mercados.ambosNoMarcan)}</strong>
+                    </div>
+
+                </div>
+            </div>
+
+                
+
+            </div>
+
+            <!-- MERCADOS DE GOLES -->
+            <div class="pronostico-card">
                     <h3><span>🚩</span> Córners esperados</h3>
 
                     <div class="comparativa-valores">
@@ -987,43 +1024,7 @@ function formatoNumero(valor) {
                         </div>
                     </div>
                 </div>
-
-            </div>
-
-            <!-- MERCADOS DE GOLES -->
             
-        <div class="pronostico-card">
-            <h3>Mercados de goles</h3>
-
-            <div class="mercados-grid">
-
-                <div class="mercado-item">
-                    <span>Más de 1.5 goles</span>
-                    <strong>{formatoPorcentaje(pronostico.mercados.masDe15Goles)}</strong>
-                </div>
-
-                <div class="mercado-item">
-                    <span>Más de 2.5 goles</span>
-                    <strong>{formatoPorcentaje(pronostico.mercados.masDe25Goles)}</strong>
-                </div>
-
-                <div class="mercado-item">
-                    <span>Más de 3.5 goles</span>
-                    <strong>{formatoPorcentaje(pronostico.mercados.masDe35Goles)}</strong>
-                </div>
-
-                <div class="mercado-item">
-                    <span>Ambos equipos marcan · Sí</span>
-                    <strong>{formatoPorcentaje(pronostico.mercados.ambosMarcan)}</strong>
-                </div>
-
-                <div class="mercado-item">
-                    <span>Ambos equipos marcan · No</span>
-                    <strong>{formatoPorcentaje(pronostico.mercados.ambosNoMarcan)}</strong>
-                </div>
-
-            </div>
-        </div>
 
 
             <!-- MERCADOS DE CÓRNERS -->
@@ -1053,7 +1054,7 @@ function formatoNumero(valor) {
                 </div>
             </div>
 
-            <p class="pronostico-nota">
+            <p class="pronostico-nota font-bold">
                 Las probabilidades son estimaciones estadísticas basadas en el historial disponible.
                 No garantizan el resultado del encuentro.
             </p>
@@ -1084,7 +1085,7 @@ function formatoNumero(valor) {
                     <!-- CABECERA -->
                     <div class="flex justify-between items-start gap-3">
 
-                        <div>
+                        
                             <div class="flex flex-col">
                                 <h3 class="text-xl font-bold text-white">
                                         {jugador.nombre} <span class="font-bold text-white">{jugador.apellidos}</span>
@@ -1094,18 +1095,13 @@ function formatoNumero(valor) {
                             </div>
                             
 
-                            <p class="text-sm text-gray-400 mt-1">
+                            <p class="text-ml text-white font-bold mt-1">
                                 Defensa rival:
                                 <span class="text-[#00ff66]">
                                     {formatoEstilo(jugador.estiloDefensivoAnalizado)}
                                 </span>
                             </p>
-                        </div>
-
-                        <span class="text-xs bg-white/10 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap">
-                            {jugador.partidosAnalizados ?? 0} partidos
-                        </span>
-
+                        
                     </div>
 
                     {#if jugador.disponible}
