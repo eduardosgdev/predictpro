@@ -6,6 +6,7 @@
     import NavBar from "../../../components/navBar.svelte"
     let { data } = $props();
     import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
 
     let partidos = $derived(data.partidos ?? []);
     let jugadores = $derived(data.jugadores ?? []);
@@ -13,6 +14,33 @@
     let mostrarModal = $state(false);
     let tipoModal = $state("");
     let estrellaSeleccionada = $state("5");
+    let tokenUser = $state(false);
+
+    
+    onMount(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            tokenUser = false;
+            return;
+        }
+
+        try {
+            const payload = JSON.parse(
+                atob(token.split(".")[1]
+                    .replace(/-/g, "+")
+                    .replace(/_/g, "/"))
+            );
+
+            // Comprobar caducidad y estado de la cuenta
+            tokenUser = !!payload.exp &&
+                        payload.exp * 1000 > Date.now() &&
+                        payload.estado === "activo";
+
+        } catch (error) {
+            tokenUser = false;
+        }
+    });
 
     // FILTROS GENERALES
     let filtroCompeticion = $state("Todos");
@@ -1064,7 +1092,7 @@ try {
             </div>
         </div>
     
-    {/if}
+        {/if}
 
         <!-- FILTROS DE COMPETICIÓN -->
 
@@ -1159,13 +1187,13 @@ try {
 
             {#each partidosVisibles as partido (partido._id)}
 
-    {@const estadisticasPartido = estadisticas.find(
-        item => String(item.matchId) === String(partido._id)
-    )}
+        {@const estadisticasPartido = estadisticas.find(
+            item => String(item.matchId) === String(partido._id)
+        )}
 
-    {@const estadisticasEquipo = estadisticasPartido?.estadisticas.filter(stat =>
-        jugadores.some(jugador => String(jugador._id) === String(stat.player))
-    ) || []}
+        {@const estadisticasEquipo = estadisticasPartido?.estadisticas.filter(stat =>
+            jugadores.some(jugador => String(jugador._id) === String(stat.player))
+        ) || []}
 
                 <article class="bg-[#111a22] border border-white/10 rounded-2xl overflow-hidden hover:border-[#00ff66]/40 transition duration-300">
 
@@ -1354,103 +1382,104 @@ try {
 
                     </div>
 
-
+                    {#if tokenUser}
                     <!-- REGISTRO DE ESTADÍSTICAS INDIVIDUALES -->
-                    <div class="p-4 border-t border-white/5">
+                        <div class="p-4 border-t border-white/5">
 
-                        {#if partido.estadisticasRegistradas === true || partidosRegistradosLocal.has(String(partido._id))}
+                            {#if partido.estadisticasRegistradas === true || partidosRegistradosLocal.has(String(partido._id))}
 
-                            <div class="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold">
-                                <span>✓</span>
-                                ESTADÍSTICAS REGISTRADAS
-                            </div>
-
-                        {:else}
-
-                            <button
-                                type="button"
-                                onclick={() => abrirModalEstadisticas(partido)}
-                                class="w-full py-3 rounded-xl bg-[#00ff66] text-[#0b1117] font-black text-xs hover:bg-[#00e65c] transition"
-                            >
-                                + AÑADIR ESTADÍSTICAS DE JUGADORES
-                            </button>
-
-                        {/if}
-
-                    </div>
-                    <!-- ESTADÍSTICAS INDIVIDUALES DEL EQUIPO -->
-
-                    <div class="p-4 border-t border-white/5 flex flex-col  ">
-
-                        <h3 class="text-xs font-black text-center text-[#383ddd] mb-4">
-                            RENDIMIENTO DE JUGADORES
-                        </h3>
-
-                        {#each estadisticasEquipo as stat (stat._id)}
-
-                            {@const jugador = jugadores.find(
-                                j => String(j._id) === String(stat.player)
-                            )}
-
-                            {#if jugador}
-                                <div class="flex flex-col justify-between items-center py-3 border-b border-white/5">
-                                    <div class="flex flex-row justify-between items-center w-full gap-2">
-                                        <span class="text-sm font-bold p-2 rounded-xl  border border-green-500/20 text-green-400">
-                                            {jugador.nombre} {jugador.apellidos}
-                                        </span>
-                                    
-                                        <span class="text-xs font-bold text-blue-600 uppercase">
-                                            {jugador.posicion}
-                                        </span>
-                                    </div>
-                        
-                                    
-
-                                    <div class="mt-3 grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
-
-                                        <!-- GOLES -->
-                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                                            <span class="text-xl mb-1">⚽</span>
-                                            <span class="text-xl font-black text-white tabular-nums">{stat.goles}</span>
-                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Goles</span>
-                                        </div>
-                                    
-                                        <!-- ASISTENCIAS -->
-                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                                            <span class="text-xl mb-1">🎯</span>
-                                            <span class="text-xl font-black text-white tabular-nums">{stat.asistencias}</span>
-                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Asist.</span>
-                                        </div>
-                                    
-                                        <!-- TIROS A PUERTA -->
-                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                                            <span class="text-xl mb-1">🥅</span>
-                                            <span class="text-xl font-black text-white tabular-nums">{stat.tirospuerta}</span>
-                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Tiros/puerta</span>
-                                        </div>
-                                    
-                                        <!-- FALTAS COMETIDAS -->
-                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                                            <span class="text-xl mb-1">🟨</span>
-                                            <span class="text-xl font-black text-white tabular-nums">{stat.faltascometidaspartido}</span>
-                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold text-center">Faltas cometidas</span>
-                                        </div>
-                                    
-                                        <!-- FALTAS RECIBIDAS -->
-                                        <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
-                                            <span class="text-xl mb-1">🟢</span>
-                                            <span class="text-xl font-black text-white tabular-nums">{stat.faltasrecibidaspartido}</span>
-                                            <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold text-center">Faltas recibidas</span>
-                                        </div>
-                                    
-                                    </div>
-
+                                <div class="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold">
+                                    <span>✓</span>
+                                    ESTADÍSTICAS REGISTRADAS
                                 </div>
+
+                            {:else}
+
+                                <button
+                                    type="button"
+                                    onclick={() => abrirModalEstadisticas(partido)}
+                                    class="w-full py-3 rounded-xl bg-[#00ff66] text-[#0b1117] font-black text-xs hover:bg-[#00e65c] transition"
+                                >
+                                    + AÑADIR ESTADÍSTICAS DE JUGADORES
+                                </button>
+
                             {/if}
 
-                        {/each}
+                        </div>
+                        <!-- ESTADÍSTICAS INDIVIDUALES DEL EQUIPO -->
 
-                    </div>
+                        <div class="p-4 border-t border-white/5 flex flex-col  ">
+
+                            <h3 class="text-xs font-black text-center text-[#383ddd] mb-4">
+                                RENDIMIENTO DE JUGADORES
+                            </h3>
+
+                            {#each estadisticasEquipo as stat (stat._id)}
+
+                                {@const jugador = jugadores.find(
+                                    j => String(j._id) === String(stat.player)
+                                )}
+
+                                {#if jugador}
+                                    <div class="flex flex-col justify-between items-center py-3 border-b border-white/5">
+                                        <div class="flex flex-row justify-between items-center w-full gap-2">
+                                            <span class="text-sm font-bold p-2 rounded-xl  border border-green-500/20 text-green-400">
+                                                {jugador.nombre} {jugador.apellidos}
+                                            </span>
+                                        
+                                            <span class="text-xs font-bold text-white uppercase">
+                                                {jugador.posicion}
+                                            </span>
+                                        </div>
+                            
+                                        
+
+                                        <div class="mt-3 grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
+
+                                            <!-- GOLES -->
+                                            <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                                <span class="text-xl mb-1">⚽</span>
+                                                <span class="text-xl font-black text-white tabular-nums">{stat.goles}</span>
+                                                <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Goles</span>
+                                            </div>
+                                        
+                                            <!-- ASISTENCIAS -->
+                                            <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                                <span class="text-xl mb-1">🎯</span>
+                                                <span class="text-xl font-black text-white tabular-nums">{stat.asistencias}</span>
+                                                <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Asist.</span>
+                                            </div>
+                                        
+                                            <!-- TIROS A PUERTA -->
+                                            <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                                <span class="text-xl mb-1">🥅</span>
+                                                <span class="text-xl font-black text-white tabular-nums">{stat.tirospuerta}</span>
+                                                <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Tiros/puerta</span>
+                                            </div>
+                                        
+                                            <!-- FALTAS COMETIDAS -->
+                                            <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                                <span class="text-xl mb-1">🟨</span>
+                                                <span class="text-xl font-black text-white tabular-nums">{stat.faltascometidaspartido}</span>
+                                                <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold text-center">Faltas cometidas</span>
+                                            </div>
+                                        
+                                            <!-- FALTAS RECIBIDAS -->
+                                            <div class="flex flex-col items-center justify-center bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                                                <span class="text-xl mb-1">🟢</span>
+                                                <span class="text-xl font-black text-white tabular-nums">{stat.faltasrecibidaspartido}</span>
+                                                <span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold text-center">Faltas recibidas</span>
+                                            </div>
+                                        
+                                        </div>
+
+                                    </div>
+                                {/if}
+
+                            {/each}
+
+                        </div>
+                    {/if}
                 </article>
 
             {/each}
@@ -1579,7 +1608,7 @@ try {
 
                         <div class="flex items-center gap-3 mt-4">
 
-                            <span class="inline-block text-[10px] font-black uppercase tracking-wider text-[#00ff66] bg-[#00ff66]/10 border border-[#00ff66]/30 px-3 py-1.5 rounded-md backdrop-blur-md">
+                            <span class="inline-block text-[10px] font-black uppercase tracking-wider text-white bg-[#00ff66]/10 border border-[#00ff66]/30 px-3 py-1.5 rounded-md backdrop-blur-md">
                                 {jugador.posicion || "Sin posición"}
                             </span>
 
@@ -1639,7 +1668,7 @@ try {
 
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-[10px] text-gray-400 font-bold tracking-widest">
-                                DATOS DE RENDIMIENTO
+                                DATOS DE RENDIMIENTO GLOBAL
                             </span>
 
                             <span class="text-[9px] text-[#00ff66] font-bold">
@@ -1693,234 +1722,272 @@ try {
 
 
                     <!-- PERFIL ESTADÍSTICO -->
-                    
-<div class="mt-6 pt-5 border-t border-white/10">
-
-    <div class="flex justify-between items-center mb-4">
-        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
-            Rendimiento por estrellas del rival
-        </h4>
-
-        <span class="text-[9px] text-[#00ff66] font-bold">
-            MEDIA / PARTIDO
-        </span>
-    </div>
-
-    <!-- SELECTOR DE ESTRELLAS -->
-    <div class="mb-4">
-        <label class="block text-[10px] text-gray-500 uppercase font-bold mb-2">
-            Seleccionar nivel del rival
-        </label>
-
-        <select
-            bind:value={estrellaSeleccionada}
-            class="w-full bg-[#0b1117] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-yellow-400 outline-none focus:border-[#00ff66] transition"
-        >
-            <option value="1">★ · 1 estrella</option>
-            <option value="2">★★ · 2 estrellas</option>
-            <option value="3">★★★ · 3 estrellas</option>
-            <option value="4">★★★★ · 4 estrellas</option>
-            <option value="5">★★★★★ · 5 estrellas</option>
-        </select>
-    </div>
-
-    {#if rendimiento[Number(estrellaSeleccionada)]}
-
-        {@const datos = rendimiento[Number(estrellaSeleccionada)]}
-
-        <div class="bg-[#0b1117] border border-white/5 rounded-xl p-3">
-
-            <!-- CABECERA -->
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-sm font-bold text-yellow-400">
-                    {"★".repeat(Number(estrellaSeleccionada))}
-                </span>
-
-                <span class="text-[10px] text-gray-500">
-                    {datos.general.encuentros} encuentros
-                </span>
-            </div>
-
-            <!-- ESTADÍSTICAS GENERALES -->
             
-<!-- RESUMEN GENERAL -->
-<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    
+                    {#if tokenUser}
 
-    <div class="bg-[#111a22] rounded-xl p-3">
-        <span class="text-[9px] text-gray-500 uppercase">Goles / partido</span>
-        <p class="text-lg font-black text-[#00ff66]">
-            {datos.general.goles ?? "—"}
-        </p>
-    </div>
-
-    <div class="bg-[#111a22] rounded-xl p-3">
-        <span class="text-[9px] text-gray-500 uppercase">Asistencias / partido</span>
-        <p class="text-lg font-black text-white">
-            {datos.general.asistencias ?? "—"}
-        </p>
-    </div>
-
-    <div class="bg-[#111a22] rounded-xl p-3">
-        <span class="text-[9px] text-gray-500 uppercase">Tiros a puerta</span>
-        <p class="text-lg font-black text-purple-400">
-            {datos.general.tirospuerta ?? "—"}
-        </p>
-    </div>
-
-    <div class="bg-[#111a22] rounded-xl p-3">
-        <span class="text-[9px] text-gray-500 uppercase">Faltas recibidas</span>
-        <p class="text-lg font-black text-blue-400">
-            {datos.general.faltasrecibidas ?? "—"}
-        </p>
-        <span class="text-xs text-gray-400">
-            {obtenerPerfilJugador({
-                ...jugador,
-                encuentros: datos.general.encuentros,
-                faltasrecibidas: (datos.general.faltasrecibidas ?? 0) * datos.general.encuentros
-            }).faltasrecibidas.categoria}
-        </span>
-    </div>
-
-    <div class="bg-[#111a22] rounded-xl p-3">
-        <span class="text-[9px] text-gray-500 uppercase">Faltas cometidas</span>
-        <p class="text-lg font-black text-red-400">
-            {datos.general.faltascometidas ?? "—"}
-        </p>
-        <span class="text-xs text-gray-400">
-            {obtenerPerfilJugador({
-                ...jugador,
-                encuentros: datos.general.encuentros,
-                faltascometidas: (datos.general.faltascometidas ?? 0) * datos.general.encuentros
-            }).faltascometidas.categoria}
-        </span>
-    </div>
-
-</div>
-
-<!-- COMPARATIVA LOCAL / VISITANTE -->
-<div class="mt-5">
-
-    <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
-        Rendimiento según condición
-    </h5>
-
-    <div class="bg-[#0b1117] rounded-xl border border-white/5 overflow-hidden">
-
-        <!-- CABECERAS -->
-        <div class="grid grid-cols-3 bg-[#111a22] px-3 py-3">
-            <span class="text-[9px] text-gray-500 uppercase">Estadística</span>
-            <span class="text-[10px] text-[#00ff66] font-bold text-center">
-                LOCAL
-            </span>
-            <span class="text-[10px] text-blue-400 font-bold text-center">
-                VISITANTE
-            </span>
-        </div>
-
-        <!-- GOLES -->
-        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
-            <span class="text-xs text-gray-300">Goles</span>
-            <span class="text-sm font-bold text-white text-center">
-                {datos.local.goles ?? "—"}
-            </span>
-            <span class="text-sm font-bold text-white text-center">
-                {datos.visitante.goles ?? "—"}
-            </span>
-        </div>
-
-        <!-- TIROS -->
-        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
-            <span class="text-xs text-gray-300">Tiros a puerta</span>
-            <span class="text-sm font-bold text-purple-400 text-center">
-                {datos.local.tirospuerta ?? "—"}
-            </span>
-            <span class="text-sm font-bold text-purple-400 text-center">
-                {datos.visitante.tirospuerta ?? "—"}
-            </span>
-        </div>
-
-        <!-- FALTAS RECIBIDAS -->
-        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
-            <span class="text-xs text-gray-300">Faltas recibidas</span>
-            <span class="text-sm font-bold text-blue-400 text-center">
-                {datos.local.faltasrecibidas ?? "—"}
-            </span>
-            <span class="text-sm font-bold text-blue-400 text-center">
-                {datos.visitante.faltasrecibidas ?? "—"}
-            </span>
-        </div>
-
-        <!-- FALTAS COMETIDAS -->
-        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
-            <span class="text-xs text-gray-300">Faltas cometidas</span>
-            <span class="text-sm font-bold text-red-400 text-center">
-                {datos.local.faltascometidas ?? "—"}
-            </span>
-            <span class="text-sm font-bold text-red-400 text-center">
-                {datos.visitante.faltascometidas ?? "—"}
-            </span>
-        </div>
-
-        <!-- PARTIDOS -->
-        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
-            <span class="text-xs text-gray-500">Encuentros</span>
-            <span class="text-xs font-bold text-[#00ff66] text-center">
-                {datos.local.encuentros}
-            </span>
-            <span class="text-xs font-bold text-blue-400 text-center">
-                {datos.visitante.encuentros}
-            </span>
-        </div>
-
-    </div>
-</div>
-
-
-        </div>
-
-    {:else}
-
-        <p class="text-center text-gray-500 text-xs py-4">
-            No hay datos disponibles para esta puntuación.
-        </p>
-
-    {/if}
-
-</div>
-
-
-<!-- RENDIMIENTO SEGÚN ESTRELLAS DEL RIVAL -->
-
-
-
-                </div>
+                    <!-- RENDIMIENTO SEGÚN ESTRELLAS DEL RIVAL -->
+                
+                    <div class="mt-6 pt-5 border-t border-white/10">
+                
+                        <!-- CABECERA -->
+                
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-xs font-bold text-gray-400 text-center uppercase tracking-wider">
+                                Datos de Rendimiento por nivel del rival
+                            </h4>
+                        </div>
+                
+                        <!-- SELECTOR DE ESTRELLAS -->
+                
+                        <div class="mb-4">
+                            <label class="block text-[10px] text-gray-500 uppercase font-bold mb-2">
+                                Seleccionar nivel del rival
+                            </label>
+                
+                            <select
+                                bind:value={estrellaSeleccionada}
+                                class="w-full bg-[#0b1117] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-yellow-400 outline-none focus:border-[#00ff66] transition"
+                            >
+                                <option value="1">★ · 1 estrella</option>
+                                <option value="2">★★ · 2 estrellas</option>
+                                <option value="3">★★★ · 3 estrellas</option>
+                                <option value="4">★★★★ · 4 estrellas</option>
+                                <option value="5">★★★★★ · 5 estrellas</option>
+                            </select>
+                        </div>
+                
+                        <!-- DATOS SEGÚN NIVEL SELECCIONADO -->
+                
+                        {#if rendimiento[Number(estrellaSeleccionada)]}
+                
+                            {@const datos = rendimiento[Number(estrellaSeleccionada)]}
+                
+                            <div class="bg-[#0b1117] border border-white/5 rounded-xl p-3">
+                
+                                <!-- CABECERA DE ESTRELLAS -->
+                
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-sm font-bold text-yellow-400">
+                                        {"★".repeat(Number(estrellaSeleccionada))}
+                                    </span>
+                
+                                    <span class="text-[10px] text-gray-500">
+                                        {datos.general.encuentros} encuentros
+                                    </span>
+                                </div>
+                
+                                <!-- RESUMEN GENERAL -->
+                
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                
+                                    <!-- GOLES -->
+                
+                                    <div class="bg-[#111a22] rounded-xl p-3">
+                                        <span class="text-[9px] text-gray-500 uppercase">Goles / partido</span>
+                                        <p class="text-lg font-black text-[#00ff66]">
+                                            {datos.general.goles ?? "—"}
+                                        </p>
+                                    </div>
+                
+                                    <!-- ASISTENCIAS -->
+                
+                                    <div class="bg-[#111a22] rounded-xl p-3">
+                                        <span class="text-[9px] text-gray-500 uppercase">Asistencias / partido</span>
+                                        <p class="text-lg font-black text-white">
+                                            {datos.general.asistencias ?? "—"}
+                                        </p>
+                                    </div>
+                
+                                    <!-- TIROS A PUERTA -->
+                
+                                    <div class="bg-[#111a22] rounded-xl p-3">
+                                        <span class="text-[9px] text-gray-500 uppercase">Tiros a puerta</span>
+                                        <p class="text-lg font-black text-purple-400">
+                                            {datos.general.tirospuerta ?? "—"}
+                                        </p>
+                                    </div>
+                
+                                    <!-- FALTAS RECIBIDAS -->
+                
+                                    <div class="bg-[#111a22] rounded-xl p-3">
+                                        <span class="text-[9px] text-gray-500 uppercase">Faltas recibidas</span>
+                
+                                        <p class="text-lg font-black text-blue-400">
+                                            {datos.general.faltasrecibidas ?? "—"}
+                                        </p>
+                
+                                        <span class="text-xs text-gray-400">
+                                            {obtenerPerfilJugador({
+                                                ...jugador,
+                                                encuentros: datos.general.encuentros,
+                                                faltasrecibidas: (datos.general.faltasrecibidas ?? 0) * datos.general.encuentros
+                                            }).faltasrecibidas.categoria}
+                                        </span>
+                                    </div>
+                
+                                    <!-- FALTAS COMETIDAS -->
+                
+                                    <div class="bg-[#111a22] rounded-xl p-3">
+                                        <span class="text-[9px] text-gray-500 uppercase">Faltas cometidas</span>
+                
+                                        <p class="text-lg font-black text-red-400">
+                                            {datos.general.faltascometidas ?? "—"}
+                                        </p>
+                
+                                        <span class="text-xs text-gray-400">
+                                            {obtenerPerfilJugador({
+                                                ...jugador,
+                                                encuentros: datos.general.encuentros,
+                                                faltascometidas: (datos.general.faltascometidas ?? 0) * datos.general.encuentros
+                                            }).faltascometidas.categoria}
+                                        </span>
+                                    </div>
+                
+                                </div>
+                
+                                <!-- COMPARATIVA LOCAL / VISITANTE -->
+                
+                                <div class="mt-5">
+                
+                                    <h5 class="text-[10px] font-bold text-gray-400 uppercase text-center tracking-wider mb-3">
+                                        Rendimiento Local/visitante
+                                    </h5>
+                
+                                    <div class="bg-[#0b1117] rounded-xl border border-white/5 overflow-hidden">
+                
+                                        <!-- CABECERAS -->
+                
+                                        <div class="grid grid-cols-3 bg-[#111a22] px-3 py-3">
+                                            <span class="text-[9px] text-gray-500 uppercase">Estadística</span>
+                
+                                            <span class="text-[10px] text-[#00ff66] font-bold text-center">
+                                                LOCAL
+                                            </span>
+                
+                                            <span class="text-[10px] text-blue-400 font-bold text-center">
+                                                VISITANTE
+                                            </span>
+                                        </div>
+                
+                                        <!-- GOLES -->
+                
+                                        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+                                            <span class="text-xs text-gray-300">Goles</span>
+                
+                                            <span class="text-sm font-bold text-white text-center">
+                                                {datos.local.goles ?? "—"}
+                                            </span>
+                
+                                            <span class="text-sm font-bold text-white text-center">
+                                                {datos.visitante.goles ?? "—"}
+                                            </span>
+                                        </div>
+                
+                                        <!-- TIROS A PUERTA -->
+                
+                                        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+                                            <span class="text-xs text-gray-300">Tiros a puerta</span>
+                
+                                            <span class="text-sm font-bold text-purple-400 text-center">
+                                                {datos.local.tirospuerta ?? "—"}
+                                            </span>
+                
+                                            <span class="text-sm font-bold text-purple-400 text-center">
+                                                {datos.visitante.tirospuerta ?? "—"}
+                                            </span>
+                                        </div>
+                
+                                        <!-- FALTAS RECIBIDAS -->
+                
+                                        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+                                            <span class="text-xs text-gray-300">Faltas recibidas</span>
+                
+                                            <span class="text-sm font-bold text-blue-400 text-center">
+                                                {datos.local.faltasrecibidas ?? "—"}
+                                            </span>
+                
+                                            <span class="text-sm font-bold text-blue-400 text-center">
+                                                {datos.visitante.faltasrecibidas ?? "—"}
+                                            </span>
+                                        </div>
+                
+                                        <!-- FALTAS COMETIDAS -->
+                
+                                        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+                                            <span class="text-xs text-gray-300">Faltas cometidas</span>
+                
+                                            <span class="text-sm font-bold text-red-400 text-center">
+                                                {datos.local.faltascometidas ?? "—"}
+                                            </span>
+                
+                                            <span class="text-sm font-bold text-red-400 text-center">
+                                                {datos.visitante.faltascometidas ?? "—"}
+                                            </span>
+                                        </div>
+                
+                                        <!-- ENCUENTROS -->
+                
+                                        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+                                            <span class="text-xs text-gray-500">Encuentros</span>
+                
+                                            <span class="text-xs font-bold text-[#00ff66] text-center">
+                                                {datos.local.encuentros}
+                                            </span>
+                
+                                            <span class="text-xs font-bold text-blue-400 text-center">
+                                                {datos.visitante.encuentros}
+                                            </span>
+                                        </div>
+                
+                                    </div>
+                                </div>
+                
+                            </div>
+                
+                        {:else}
+                
+                            <p class="text-center text-gray-500 text-xs py-4">
+                                No hay datos disponibles para esta puntuación.
+                            </p>
+                
+                        {/if}
+                
+                    </div>
+                
+                {/if}
+                
                 <!-- FOOTER -->
-                <div class="px-5 py-4 bg-[#0b1117] border-t border-white/5 flex justify-between items-center">
-
+                
+                <div class="px-5 py-4 bg-[#0b1117] border-t border-white/5 flex justify-between items-center mt-2">
+                
                     <span class="text-[9px] text-gray-500 font-black tracking-[3px]">
                         PREDICTPRO
                     </span>
-
+                
                     <span class="text-[9px] text-[#00ff66] font-bold tracking-wider">
                         PLAYER ANALYSIS
                     </span>
-
+                
+                </div>
+                
+                </article>
+                
+                {#if jugadores.length === 0}
+                
+                    <div class="text-center py-16 border border-white/10 rounded-2xl">
+                        <p class="text-gray-500 text-sm">
+                            No hay jugadores registrados para este equipo.
+                        </p>
+                    </div>
+                
+                {/if}
+                
+                {/each}
+                
                 </div>
 
-            </article>
-
-        {/each}
-
-
-        </div>
-
-        {#if jugadores.length === 0}
-            <div class="text-center py-16 border border-white/10 rounded-2xl">
-                <p class="text-gray-500 text-sm">
-                    No hay jugadores registrados para este equipo.
-                </p>
-            </div>
-        {/if}
+       
 
     </section>
 

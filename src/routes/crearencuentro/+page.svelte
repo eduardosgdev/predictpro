@@ -178,9 +178,16 @@
         try {
             cargando = true;
 
+            const token = localStorage.getItem("token");
+            
             const response = await matchAxios.post(
                 "/",
-                datosEncuentro
+                datosEncuentro,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
             );
 
             mensaje =
