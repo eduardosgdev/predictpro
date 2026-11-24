@@ -12,6 +12,7 @@
     let estadisticas = $derived(data.estadisticas ?? []);
     let mostrarModal = $state(false);
     let tipoModal = $state("");
+    let estrellaSeleccionada = $state("5");
 
     // FILTROS GENERALES
     let filtroCompeticion = $state("Todos");
@@ -603,6 +604,89 @@ function obtenerPerfilJugador(jugador) {
         }
     };
 }
+
+
+function obtenerRendimientoPorEstrellas(jugador) {
+
+const partidosJugador = estadisticas.flatMap(registro => {
+
+    const partidoAnalizado = partidosAnalizados.find(
+        item => String(item.id) === String(registro.matchId)
+    );
+
+    if (!partidoAnalizado) return [];
+
+    const estadisticaJugador = (registro.estadisticas || []).find(
+        stat => String(stat.player?._id ?? stat.player) === String(jugador._id)
+    );
+
+    if (!estadisticaJugador) return [];
+
+    const puntuacion = Number(partidoAnalizado.rival?.puntuacion);
+
+    if (![1, 2, 3, 4, 5].includes(puntuacion)) return [];
+
+    return [{
+        puntuacion,
+        local: partidoAnalizado.local,
+        ...estadisticaJugador
+    }];
+});
+
+// CALCULAR MEDIAS
+function calcularMedias(registros) {
+
+    const encuentros = registros.length;
+
+    const media = campo => {
+
+        if (encuentros === 0) return null;
+
+        const total = registros.reduce(
+            (suma, registro) =>
+                suma + (Number(registro[campo]) || 0),
+            0
+        );
+
+        return Number((total / encuentros).toFixed(2));
+    };
+
+    return {
+        encuentros,
+        goles: media("goles"),
+        asistencias: media("asistencias"),
+        tirospuerta: media("tirospuerta"),
+        faltasrecibidas: media("faltasrecibidaspartido"),
+        faltascometidas: media("faltascometidaspartido")
+    };
+}
+
+// SEPARAR POR ESTRELLAS
+const resultado = {};
+
+for (const estrellas of [1, 2, 3, 4, 5]) {
+
+    const partidosEstrellas = partidosJugador.filter(
+        partido => partido.puntuacion === estrellas
+    );
+
+    resultado[estrellas] = {
+
+        general: calcularMedias(partidosEstrellas),
+
+        local: calcularMedias(
+            partidosEstrellas.filter(partido => partido.local)
+        ),
+
+        visitante: calcularMedias(
+            partidosEstrellas.filter(partido => !partido.local)
+        )
+    };
+}
+
+return resultado;
+}
+
 
 function abrirAnalisis1() {
 
@@ -1310,10 +1394,17 @@ try {
 
                             {#if jugador}
                                 <div class="flex flex-col justify-between items-center py-3 border-b border-white/5">
-
-                                    <span class="text-sm font-bold p-2 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 ">
-                                        {jugador.nombre} {jugador.apellidos}
-                                    </span>
+                                    <div class="flex flex-row justify-between items-center w-full gap-2">
+                                        <span class="text-sm font-bold p-2 rounded-xl  border border-green-500/20 text-green-400">
+                                            {jugador.nombre} {jugador.apellidos}
+                                        </span>
+                                    
+                                        <span class="text-xs font-bold text-blue-600 uppercase">
+                                            {jugador.posicion}
+                                        </span>
+                                    </div>
+                        
+                                    
 
                                     <div class="mt-3 grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
 
@@ -1436,6 +1527,7 @@ try {
 
             
         {#each jugadores as jugador (jugador._id)}
+        {@const rendimiento = obtenerRendimientoPorEstrellas(jugador)}
             {@const perfil = obtenerPerfilJugador(jugador)}
 
             <article class="relative bg-[#111a22] rounded-2xl border border-white/10 overflow-hidden group hover:border-[#00ff66]/50 transition-all duration-300">
@@ -1601,98 +1693,207 @@ try {
 
 
                     <!-- PERFIL ESTADÍSTICO -->
-                    <div class="mt-6 pt-5 border-t border-white/5">
+                    
+<div class="mt-6 pt-5 border-t border-white/10">
 
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                Perfil estadístico
-                            </h4>
+    <div class="flex justify-between items-center mb-4">
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+            Rendimiento por estrellas del rival
+        </h4>
 
-                            <span class="text-[9px] text-[#00ff66] font-bold">
-                                MEDIA / PARTIDO
-                            </span>
-                        </div>
+        <span class="text-[9px] text-[#00ff66] font-bold">
+            MEDIA / PARTIDO
+        </span>
+    </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+    <!-- SELECTOR DE ESTRELLAS -->
+    <div class="mb-4">
+        <label class="block text-[10px] text-gray-500 uppercase font-bold mb-2">
+            Seleccionar nivel del rival
+        </label>
 
-                            <!-- GOLES -->
-                            <div class="bg-[#0b1117] rounded-xl p-3 border border-white/5">
-                                <span class="text-[10px] text-gray-400 uppercase">Goles</span>
+        <select
+            bind:value={estrellaSeleccionada}
+            class="w-full bg-[#0b1117] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-yellow-400 outline-none focus:border-[#00ff66] transition"
+        >
+            <option value="1">★ · 1 estrella</option>
+            <option value="2">★★ · 2 estrellas</option>
+            <option value="3">★★★ · 3 estrellas</option>
+            <option value="4">★★★★ · 4 estrellas</option>
+            <option value="5">★★★★★ · 5 estrellas</option>
+        </select>
+    </div>
 
-                                <p class="text-lg font-black text-[#00ff66] mt-1">
-                                    {jugador.encuentros > 0 ? perfil.goles.media.toFixed(2) : "—"}
-                                </p>
+    {#if rendimiento[Number(estrellaSeleccionada)]}
 
-                                <span class="text-xs text-gray-300">
-                                    {perfil.goles.categoria}
-                                </span>
-                            </div>
+        {@const datos = rendimiento[Number(estrellaSeleccionada)]}
 
-                            <!-- ASISTENCIAS -->
-                            <div class="bg-[#0b1117] rounded-xl p-3 border border-white/5">
-                                <span class="text-[10px] text-gray-400 uppercase">Asistencias</span>
+        <div class="bg-[#0b1117] border border-white/5 rounded-xl p-3">
 
-                                <p class="text-lg font-black text-blue-400 mt-1">
-                                    {jugador.encuentros > 0 ? perfil.asistencias.media.toFixed(2) : "—"}
-                                </p>
+            <!-- CABECERA -->
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-sm font-bold text-yellow-400">
+                    {"★".repeat(Number(estrellaSeleccionada))}
+                </span>
 
-                                <span class="text-xs text-gray-300">
-                                    {perfil.asistencias.categoria}
-                                </span>
-                            </div>
+                <span class="text-[10px] text-gray-500">
+                    {datos.general.encuentros} encuentros
+                </span>
+            </div>
 
-                            <!-- REMATES -->
-                            <div class="bg-[#0b1117] rounded-xl p-3 border border-white/5">
-                                <span class="text-[10px] text-gray-400 uppercase">
-                                    Remates a puerta
-                                </span>
+            <!-- ESTADÍSTICAS GENERALES -->
+            
+<!-- RESUMEN GENERAL -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
 
-                                <p class="text-lg font-black text-purple-400 mt-1">
-                                    {jugador.encuentros > 0 ? perfil.tirospuerta.media.toFixed(2) : "—"}
-                                </p>
+    <div class="bg-[#111a22] rounded-xl p-3">
+        <span class="text-[9px] text-gray-500 uppercase">Goles / partido</span>
+        <p class="text-lg font-black text-[#00ff66]">
+            {datos.general.goles ?? "—"}
+        </p>
+    </div>
 
-                                <span class="text-xs text-gray-300">
-                                    {perfil.tirospuerta.categoria}
-                                </span>
-                            </div>
+    <div class="bg-[#111a22] rounded-xl p-3">
+        <span class="text-[9px] text-gray-500 uppercase">Asistencias / partido</span>
+        <p class="text-lg font-black text-white">
+            {datos.general.asistencias ?? "—"}
+        </p>
+    </div>
 
-                            <!-- FALTAS RECIBIDAS -->
-                            <div class="bg-[#0b1117] rounded-xl p-3 border border-white/5">
-                                <span class="text-[10px] text-gray-400 uppercase">
-                                    Faltas recibidas
-                                </span>
+    <div class="bg-[#111a22] rounded-xl p-3">
+        <span class="text-[9px] text-gray-500 uppercase">Tiros a puerta</span>
+        <p class="text-lg font-black text-purple-400">
+            {datos.general.tirospuerta ?? "—"}
+        </p>
+    </div>
 
-                                <p class="text-lg font-black text-yellow-400 mt-1">
-                                    {jugador.encuentros > 0 ? perfil.faltasrecibidas.media.toFixed(2) : "—"}
-                                </p>
+    <div class="bg-[#111a22] rounded-xl p-3">
+        <span class="text-[9px] text-gray-500 uppercase">Faltas recibidas</span>
+        <p class="text-lg font-black text-blue-400">
+            {datos.general.faltasrecibidas ?? "—"}
+        </p>
+        <span class="text-xs text-gray-400">
+            {obtenerPerfilJugador({
+                ...jugador,
+                encuentros: datos.general.encuentros,
+                faltasrecibidas: (datos.general.faltasrecibidas ?? 0) * datos.general.encuentros
+            }).faltasrecibidas.categoria}
+        </span>
+    </div>
 
-                                <span class="text-xs text-gray-300">
-                                    {perfil.faltasrecibidas.categoria}
-                                </span>
-                            </div>
+    <div class="bg-[#111a22] rounded-xl p-3">
+        <span class="text-[9px] text-gray-500 uppercase">Faltas cometidas</span>
+        <p class="text-lg font-black text-red-400">
+            {datos.general.faltascometidas ?? "—"}
+        </p>
+        <span class="text-xs text-gray-400">
+            {obtenerPerfilJugador({
+                ...jugador,
+                encuentros: datos.general.encuentros,
+                faltascometidas: (datos.general.faltascometidas ?? 0) * datos.general.encuentros
+            }).faltascometidas.categoria}
+        </span>
+    </div>
 
-                            <!-- FALTAS COMETIDAS -->
-                            <div class="bg-[#0b1117] rounded-xl p-3 border border-white/5">
-                                <span class="text-[10px] text-gray-400 uppercase">
-                                    Faltas cometidas
-                                </span>
+</div>
 
-                                <p class="text-lg font-black text-red-400 mt-1">
-                                    {jugador.encuentros > 0 ? perfil.faltascometidas.media.toFixed(2) : "—"}
-                                </p>
+<!-- COMPARATIVA LOCAL / VISITANTE -->
+<div class="mt-5">
 
-                                <span class="text-xs text-gray-300">
-                                    {perfil.faltascometidas.categoria}
-                                </span>
-                            </div>
+    <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+        Rendimiento según condición
+    </h5>
 
-                        </div>
+    <div class="bg-[#0b1117] rounded-xl border border-white/5 overflow-hidden">
 
-                    </div>
+        <!-- CABECERAS -->
+        <div class="grid grid-cols-3 bg-[#111a22] px-3 py-3">
+            <span class="text-[9px] text-gray-500 uppercase">Estadística</span>
+            <span class="text-[10px] text-[#00ff66] font-bold text-center">
+                LOCAL
+            </span>
+            <span class="text-[10px] text-blue-400 font-bold text-center">
+                VISITANTE
+            </span>
+        </div>
+
+        <!-- GOLES -->
+        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+            <span class="text-xs text-gray-300">Goles</span>
+            <span class="text-sm font-bold text-white text-center">
+                {datos.local.goles ?? "—"}
+            </span>
+            <span class="text-sm font-bold text-white text-center">
+                {datos.visitante.goles ?? "—"}
+            </span>
+        </div>
+
+        <!-- TIROS -->
+        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+            <span class="text-xs text-gray-300">Tiros a puerta</span>
+            <span class="text-sm font-bold text-purple-400 text-center">
+                {datos.local.tirospuerta ?? "—"}
+            </span>
+            <span class="text-sm font-bold text-purple-400 text-center">
+                {datos.visitante.tirospuerta ?? "—"}
+            </span>
+        </div>
+
+        <!-- FALTAS RECIBIDAS -->
+        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+            <span class="text-xs text-gray-300">Faltas recibidas</span>
+            <span class="text-sm font-bold text-blue-400 text-center">
+                {datos.local.faltasrecibidas ?? "—"}
+            </span>
+            <span class="text-sm font-bold text-blue-400 text-center">
+                {datos.visitante.faltasrecibidas ?? "—"}
+            </span>
+        </div>
+
+        <!-- FALTAS COMETIDAS -->
+        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+            <span class="text-xs text-gray-300">Faltas cometidas</span>
+            <span class="text-sm font-bold text-red-400 text-center">
+                {datos.local.faltascometidas ?? "—"}
+            </span>
+            <span class="text-sm font-bold text-red-400 text-center">
+                {datos.visitante.faltascometidas ?? "—"}
+            </span>
+        </div>
+
+        <!-- PARTIDOS -->
+        <div class="grid grid-cols-3 items-center px-3 py-3 border-t border-white/5">
+            <span class="text-xs text-gray-500">Encuentros</span>
+            <span class="text-xs font-bold text-[#00ff66] text-center">
+                {datos.local.encuentros}
+            </span>
+            <span class="text-xs font-bold text-blue-400 text-center">
+                {datos.visitante.encuentros}
+            </span>
+        </div>
+
+    </div>
+</div>
+
+
+        </div>
+
+    {:else}
+
+        <p class="text-center text-gray-500 text-xs py-4">
+            No hay datos disponibles para esta puntuación.
+        </p>
+
+    {/if}
+
+</div>
+
+
+<!-- RENDIMIENTO SEGÚN ESTRELLAS DEL RIVAL -->
+
+
 
                 </div>
-
-
                 <!-- FOOTER -->
                 <div class="px-5 py-4 bg-[#0b1117] border-t border-white/5 flex justify-between items-center">
 
