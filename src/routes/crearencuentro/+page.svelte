@@ -332,48 +332,11 @@
                             <p class="text-gray-400 text-center text-sm">
                                 {equipoLocal.pais}
                             </p>
-
-                            <div class="grid grid-cols-2 gap-3 mt-5">
-
-                                <div class="estadistica">
-                                    <span>Puntuación</span>
-                                    <strong>{equipoLocal.puntuacion ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Encuentros</span>
-                                    <strong>{equipoLocal.totalencuentros ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Victorias</span>
-                                    <strong>{equipoLocal.encuentrosganados ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Derrotas</span>
-                                    <strong>{equipoLocal.encuentrosperdidos ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Goles a favor</span>
-                                    <strong>{equipoLocal.golesafavor ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Goles en contra</span>
-                                    <strong>{equipoLocal.golesencontra ?? 0}</strong>
-                                </div>
-
-                            </div>
-
                         </div>
 
                     {/if}
 
                 </section>
-
-
                 <!-- EQUIPO VISITANTE -->
 
                 <section class="tarjeta">
@@ -432,42 +395,7 @@
                             <p class="text-gray-400 text-center text-sm">
                                 {equipoVisitante.pais}
                             </p>
-
-                            <div class="grid grid-cols-2 gap-3 mt-5">
-
-                                <div class="estadistica">
-                                    <span>Puntuación</span>
-                                    <strong>{equipoVisitante.puntuacion ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Encuentros</span>
-                                    <strong>{equipoVisitante.totalencuentros ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Victorias</span>
-                                    <strong>{equipoVisitante.encuentrosganados ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Derrotas</span>
-                                    <strong>{equipoVisitante.encuentrosperdidos ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Goles a favor</span>
-                                    <strong>{equipoVisitante.golesafavor ?? 0}</strong>
-                                </div>
-
-                                <div class="estadistica">
-                                    <span>Goles en contra</span>
-                                    <strong>{equipoVisitante.golesencontra ?? 0}</strong>
-                                </div>
-
-                            </div>
-
-                        </div>
+                       </div>
 
                     {/if}
 

@@ -59,7 +59,7 @@ try {
     }
 
     // 5. Comprobar rol
-    if (!["admin", "user"].includes(payload.rol)) {
+    if (!["adminconstantinopla", "user"].includes(payload.rol)) {
         mostrarModal = true;
         return;
     }
