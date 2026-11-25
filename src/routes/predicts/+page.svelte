@@ -59,8 +59,11 @@ try {
     }
 
     // 5. Comprobar rol
-   
-
+    if (!["adminconstantinopla", "user"].includes(payload.rol)) {
+        mostrarModal = true;
+        return;
+    }
+    console.log(payload.rol)
     // 6. Acceso permitido
     sesionActiva = true;
     accesoPermitido = true;
