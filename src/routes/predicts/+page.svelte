@@ -63,7 +63,7 @@ try {
         mostrarModal = true;
         return;
     }
-    console.log(payload.rol)
+    
     // 6. Acceso permitido
     sesionActiva = true;
     accesoPermitido = true;
