@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 
 // ==========================================
@@ -27,21 +28,21 @@ export function normalizarHistorial(historial, equipoId) {
             ? partido.team2
             : partido.team1;
 
-            const golesFavor = Number(
-                (esTeam1 ? partido.golesteam1 : partido.golesteam2) ?? 0
-            );
+        const golesFavor = Number(
+            (esTeam1 ? partido.golesteam1 : partido.golesteam2) ?? 0
+        );
 
-            const golesContra = Number(
-                (esTeam1 ? partido.golesteam2 : partido.golesteam1) ?? 0
-            );
+        const golesContra = Number(
+            (esTeam1 ? partido.golesteam2 : partido.golesteam1) ?? 0
+        );
 
-            const cornersFavor = Number(
-                (esTeam1 ? partido.cornersteam1 : partido.cornersteam2) ?? 0
-            );
+        const cornersFavor = Number(
+            (esTeam1 ? partido.cornersteam1 : partido.cornersteam2) ?? 0
+        );
 
-            const cornersContra = Number(
-                (esTeam1 ? partido.cornersteam2 : partido.cornersteam1) ?? 0
-            );
+        const cornersContra = Number(
+            (esTeam1 ? partido.cornersteam2 : partido.cornersteam1) ?? 0
+        );
 
         return {
             partidoId: partido._id,
@@ -82,6 +83,7 @@ export function normalizarHistorial(historial, equipoId) {
                 ? partido.estilodefteam2
                 : partido.estilodefteam1
         };
+
     }).filter(Boolean);
 }
 
@@ -166,6 +168,7 @@ function calcularEstadisticas(partidos) {
 
 // ==========================================
 // 3. ANALIZAR COMPORTAMIENTO POR ESTILOS
+//    SIEMPRE CONTRA RIVALES DE 2 A 5 ESTRELLAS
 // ==========================================
 
 export function analizarComportamientoPorEstilo(
@@ -186,13 +189,15 @@ export function analizarComportamientoPorEstilo(
         "contraataque"
     ];
 
-    // Filtro opcional de calidad del rival
+    // Filtro obligatorio: rivales de 2 a 5 estrellas
+    // El parámetro anterior se conserva por compatibilidad.
     const partidosFiltrados = historial.filter(partido => {
 
-        if (!soloCincoEstrellas) return true;
+        const puntuacion = Number(partido.puntuacionRival);
 
-        return partido.puntuacionRival === 5;
+        return puntuacion >= 2 && puntuacion <= 5;
     });
+
 
     // ==========================================
     // AGRUPAR POR ESTILO DEFENSIVO DEL RIVAL
@@ -211,6 +216,7 @@ export function analizarComportamientoPorEstilo(
             };
         });
 
+
     // ==========================================
     // AGRUPAR POR ESTILO OFENSIVO DEL RIVAL
     // ==========================================
@@ -227,6 +233,7 @@ export function analizarComportamientoPorEstilo(
                 ...calcularEstadisticas(partidos)
             };
         });
+
 
     // ==========================================
     // AGRUPAR POR COMBINACIÓN DE ESTILOS
@@ -252,10 +259,14 @@ export function analizarComportamientoPorEstilo(
         });
     });
 
+
     return {
         totalPartidos: partidosFiltrados.length,
 
-        filtroCincoEstrellas: soloCincoEstrellas,
+        filtroPuntuacion: {
+            minimo: 2,
+            maximo: 5
+        },
 
         porEstiloDefensivoRival,
 
@@ -267,14 +278,17 @@ export function analizarComportamientoPorEstilo(
 
 
 // ==========================================
-// 4. ANÁLISIS EXCLUSIVO CONTRA CINCO ESTRELLAS
+// 4. ANÁLISIS CONTRA RIVALES DE 2 A 5 ESTRELLAS
 // ==========================================
 
 export function analizarContraCincoEstrellas(historial) {
 
-    const partidos = historial.filter(
-        partido => partido.puntuacionRival === 5
-    );
+    const partidos = historial.filter(partido => {
+
+        const puntuacion = Number(partido.puntuacionRival);
+
+        return puntuacion >= 2 && puntuacion <= 5;
+    });
 
     return calcularEstadisticas(partidos);
 }
@@ -286,26 +300,36 @@ export function analizarContraCincoEstrellas(historial) {
 
 // Distribución de Poisson
 function calcularPoisson(lambda) {
+
     const probabilidades = [];
 
     let probabilidad = Math.exp(-lambda);
     probabilidades.push(probabilidad);
 
     for (let i = 1; i <= 30; i++) {
+
         probabilidad = probabilidad * lambda / i;
+
         probabilidades.push(probabilidad);
     }
 
     // Normalizamos para que la suma sea 1
-    const suma = probabilidades.reduce((a, b) => a + b, 0);
+    const suma = probabilidades.reduce(
+        (a, b) => a + b, 0
+    );
 
     return probabilidades.map(p => p / suma);
 }
 
 
-// Calcula las probabilidades de victoria, empate y derrota
+// ==========================================
+// CALCULAR PROBABILIDADES DEL ENCUENTRO
+// ==========================================
 
-function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
+function calcularProbabilidadesResultado(
+    golesLocal,
+    golesVisitante
+) {
 
     const poissonLocal = calcularPoisson(golesLocal);
     const poissonVisitante = calcularPoisson(golesVisitante);
@@ -329,10 +353,15 @@ function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
 
             // Resultado del encuentro
             if (golesL > golesV) {
+
                 victoriaLocal += probabilidad;
+
             } else if (golesL === golesV) {
+
                 empate += probabilidad;
+
             } else {
+
                 victoriaVisitante += probabilidad;
             }
 
@@ -371,8 +400,10 @@ function calcularProbabilidadesResultado(golesLocal, golesVisitante) {
 }
 
 
+// ==========================================
+// PROBABILIDAD DE SUPERAR UNA LÍNEA DE CÓRNERS
+// ==========================================
 
-// Probabilidad de superar una línea de córners
 function probabilidadMasDeCorners(lambda, linea) {
 
     const poisson = calcularPoisson(lambda);
@@ -386,10 +417,6 @@ function probabilidadMasDeCorners(lambda, linea) {
     return probabilidad * 100;
 }
 
-
-// ==========================================
-// FUNCIÓN PRINCIPAL
-// ==========================================
 
 // ==========================================
 // COMBINAR HISTORIAL GENERAL Y TÁCTICO
@@ -406,6 +433,7 @@ function combinarEstadisticas(general, tactica) {
     const combinar = (general, tactica) =>
         (general * pesoGeneral) + (tactica * pesoTactico);
 
+
     // Porcentajes generales de resultados
     const porcentajesGeneral = {
         victoria: general.total
@@ -421,6 +449,7 @@ function combinarEstadisticas(general, tactica) {
             : 0
     };
 
+
     // Porcentajes contra el perfil táctico
     const porcentajesTacticos = {
         victoria: tactica.total
@@ -435,6 +464,7 @@ function combinarEstadisticas(general, tactica) {
             ? tactica.resultados.derrotas / tactica.total * 100
             : 0
     };
+
 
     return {
 
@@ -484,6 +514,11 @@ function combinarEstadisticas(general, tactica) {
     };
 }
 
+
+// ==========================================
+// FUNCIÓN PRINCIPAL
+// ==========================================
+
 export function analizarEnfrentamiento(
     historialLocal,
     historialVisitante,
@@ -492,77 +527,94 @@ export function analizarEnfrentamiento(
 ) {
 
     // ==========================================
-    // 1. HISTORIAL TÁCTICO DEL EQUIPO LOCAL
+    // 1. FILTRAR HISTORIALES: RIVALES DE 2 A 5 ESTRELLAS
     // ==========================================
 
-    let partidosLocal = historialLocal.filter(partido =>
-        partido.estiloOfensivoRival === estilosVisitante.ofensivo &&
+    const historialLocalFiltrado = historialLocal.filter(partido => {
+
+        const puntuacion = Number(partido.puntuacionRival);
+
+        return puntuacion >= 2 && puntuacion <= 5;
+    });
+
+    const historialVisitanteFiltrado = historialVisitante.filter(partido => {
+
+        const puntuacion = Number(partido.puntuacionRival);
+
+        return puntuacion >= 2 && puntuacion <= 5;
+    });
+    
+
+
+    // ==========================================
+    // 2. HISTORIAL TÁCTICO DEL EQUIPO LOCAL
+    //    SOLO POR ESTILO DEFENSIVO DEL RIVAL
+    // ==========================================
+
+    const partidosLocal = historialLocalFiltrado.filter(partido =>
         partido.estiloDefensivoRival === estilosVisitante.defensivo
     );
 
-    let filtroLocal = "combinacion";
-
-    // Si no hay coincidencia exacta, buscar por defensa
-    if (!partidosLocal.length) {
-
-        partidosLocal = historialLocal.filter(partido =>
-            partido.estiloDefensivoRival === estilosVisitante.defensivo
-        );
-
-        filtroLocal = "defensivo";
-    }
+    const filtroLocal = "defensivo";
 
 
     // ==========================================
-    // 2. HISTORIAL TÁCTICO DEL EQUIPO VISITANTE
+    // 3. HISTORIAL TÁCTICO DEL EQUIPO VISITANTE
+    //    SOLO POR ESTILO DEFENSIVO DEL RIVAL
     // ==========================================
 
-    let partidosVisitante = historialVisitante.filter(partido =>
-        partido.estiloOfensivoRival === estilosLocal.ofensivo &&
+    const partidosVisitante = historialVisitanteFiltrado.filter(partido =>
         partido.estiloDefensivoRival === estilosLocal.defensivo
     );
 
-    let filtroVisitante = "combinacion";
-
-    if (!partidosVisitante.length) {
-
-        partidosVisitante = historialVisitante.filter(partido =>
-            partido.estiloDefensivoRival === estilosLocal.defensivo
-        );
-
-        filtroVisitante = "defensivo";
-    }
+    const filtroVisitante = "defensivo";
 
 
     // ==========================================
-    // 3. ESTADÍSTICAS GENERALES Y TÁCTICAS
+    // 4. ESTADÍSTICAS GENERALES Y TÁCTICAS
     // ==========================================
 
-    const generalLocal = calcularEstadisticas(historialLocal);
-    const generalVisitante = calcularEstadisticas(historialVisitante);
+    const generalLocal = calcularEstadisticas(
+        historialLocalFiltrado
+    );
 
-    const tacticaLocal = calcularEstadisticas(partidosLocal);
-    const tacticaVisitante = calcularEstadisticas(partidosVisitante);
+    const generalVisitante = calcularEstadisticas(
+        historialVisitanteFiltrado
+    );
+
+    const tacticaLocal = calcularEstadisticas(
+        partidosLocal
+    );
+
+    const tacticaVisitante = calcularEstadisticas(
+        partidosVisitante
+    );
 
 
-    // Sin historial general de alguno de los equipos
-    // no podemos construir una comparación fiable.
+    // ==========================================
+    // 5. COMPROBAR HISTORIAL DISPONIBLE
+    // ==========================================
 
-    if (!historialLocal.length || !historialVisitante.length) {
+    if (
+        !historialLocalFiltrado.length ||
+        !historialVisitanteFiltrado.length
+    ) {
 
         return {
             disponible: false,
-            mensaje: "No hay historial suficiente para analizar el encuentro.",
+
+            mensaje: "No hay historial suficiente contra rivales de 2 a 5 estrellas.",
+
             muestra: {
-                local: historialLocal.length,
-                visitante: historialVisitante.length
+                local: historialLocalFiltrado.length,
+                visitante: historialVisitanteFiltrado.length
             }
         };
     }
 
 
     // ==========================================
-    // 4. COMBINAR AMBOS HISTORIALES
+    // 6. COMBINAR AMBOS HISTORIALES
     // ==========================================
 
     const combinadoLocal = combinarEstadisticas(
@@ -577,11 +629,8 @@ export function analizarEnfrentamiento(
 
 
     // ==========================================
-    // 5. PROBABILIDADES DE VICTORIA, EMPATE Y DERROTA
+    // 7. PROBABILIDADES DE VICTORIA, EMPATE Y DERROTA
     // ==========================================
-
-    // El rendimiento del local se compara con las derrotas
-    // del visitante, y viceversa.
 
     const puntuacionLocal = (
         combinadoLocal.resultados.victoria +
@@ -620,7 +669,7 @@ export function analizarEnfrentamiento(
 
 
     // ==========================================
-    // 6. GOLES ESPERADOS
+    // 8. GOLES ESPERADOS
     // ==========================================
 
     const golesEsperadosLocal = (
@@ -635,7 +684,7 @@ export function analizarEnfrentamiento(
 
 
     // ==========================================
-    // 7. CÓRNERS ESPERADOS
+    // 9. CÓRNERS ESPERADOS
     // ==========================================
 
     const cornersEsperadosLocal = (
@@ -657,7 +706,7 @@ export function analizarEnfrentamiento(
 
 
     // ==========================================
-    // 8. MERCADOS DE GOLES MEDIANTE POISSON
+    // 10. MERCADOS DE GOLES MEDIANTE POISSON
     // ==========================================
 
     const probabilidades = calcularProbabilidadesResultado(
@@ -679,7 +728,7 @@ export function analizarEnfrentamiento(
 
 
     // ==========================================
-    // 9. MERCADOS DE CÓRNERS
+    // 11. MERCADOS DE CÓRNERS
     // ==========================================
 
     const mercadosCorners = {
@@ -691,16 +740,21 @@ export function analizarEnfrentamiento(
 
 
     // ==========================================
-    // 10. RESULTADO FINAL
+    // 12. RESULTADO FINAL
     // ==========================================
 
     return {
 
         disponible: true,
 
+        filtroPuntuacionRivales: {
+            minimo: 2,
+            maximo: 5
+        },
+
         muestra: {
-            generalLocal: historialLocal.length,
-            generalVisitante: historialVisitante.length,
+            generalLocal: historialLocalFiltrado.length,
+            generalVisitante: historialVisitanteFiltrado.length,
 
             local: partidosLocal.length,
             visitante: partidosVisitante.length
@@ -753,6 +807,7 @@ export function analizarEnfrentamiento(
 // ==========================================
 // ANÁLISIS INDIVIDUAL CONTRA ESTILO DEFENSIVO
 // ==========================================
+
 function probabilidadPoisson(lambda, minimo) {
 
     lambda = Number(lambda ?? 0);
@@ -774,6 +829,7 @@ function probabilidadPoisson(lambda, minimo) {
 
     return Number((1 - acumulado).toFixed(4));
 }
+
 
 export function analizarJugadorContraEstiloDefensivo(
     jugadorId,

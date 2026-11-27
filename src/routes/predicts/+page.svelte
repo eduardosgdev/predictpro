@@ -837,230 +837,267 @@ function formatoNumero(valor) {
         </button>
 
     </div>
-    {#if pronostico?.disponible}
-        <section class="pronostico-panel ">
+    
+{#if pronostico?.disponible}
+<section class="pronostico-panel">
 
-            <div class="pronostico-header">
-                <div>
-                    <span class="pronostico-etiqueta">PREDICTPRO · ANÁLISIS</span>
-                    <h2>Pronóstico del encuentro</h2>
-                    <p>Estimaciones basadas en el comportamiento histórico de ambos equipos.</p>
-                </div>
-                <div class="estado-pronostico">
-                    <span></span>
-                    Análisis disponible
-                </div>
-            </div>
+    <!-- CABECERA -->
+    <div class="pronostico-header">
+        <div>
+            <span class="pronostico-etiqueta">
+                PREDICTPRO · ANÁLISIS
+            </span>
 
-            <!-- MUESTRA HISTÓRICA -->
-            <div class="pronostico-muestras grid grid-cols-2 gap-4">
+            <h2>Pronóstico del encuentro</h2>
 
-    <!-- EQUIPO LOCAL -->
-    <div class="muestra-equipo local flex flex-col items-center gap-2">
-        <span class="text-xl text-gray-400 font-semibold">
-             Local
-        </span>
-
-        <img
-            src={equipoLocalSeleccionado.escudo}
-            alt="Escudo equipo local"
-            class="w-14 h-14 object-contain drop-shadow-lg"
-        />
-
-        
-    </div>
-
-    <!-- EQUIPO VISITANTE -->
-    <div class="muestra-equipo visitante flex flex-col items-center gap-2">
-        <span class="text-xl text-gray-400 font-semibold">
-             Visitante
-        </span>
-
-        <img
-            src={equipoVisitanteSeleccionado.escudo}
-            alt="Escudo equipo visitante"
-            class="w-14 h-14 object-contain drop-shadow-lg"
-        />
-
-        
-    </div>
-
-</div>
-
-            <!-- PROBABILIDADES 1X2 -->
-            <div class="pronostico-card">
-                <h3>Probabilidades del resultado</h3>
-
-                <div class="resultado-probabilidades">
-
-                    <div class="probabilidad-item">
-                        <div class="probabilidad-info">
-                            <span>Victoria local</span>
-                            <strong>{formatoPorcentaje(pronostico.probabilidades.victoriaLocal)}</strong>
-                        </div>
-                        <div class="barra-fondo">
-                            <div
-                                class="barra-progreso barra-local"
-                                style={`width: ${porcentaje(pronostico.probabilidades.victoriaLocal)}%`}
-                            ></div>
-                        </div>
-                    </div>
-
-                    <div class="probabilidad-item">
-                        <div class="probabilidad-info">
-                            <span>Empate</span>
-                            <strong>{formatoPorcentaje(pronostico.probabilidades.empate)}</strong>
-                        </div>
-                        <div class="barra-fondo">
-                            <div
-                                class="barra-progreso barra-empate"
-                                style={`width: ${porcentaje(pronostico.probabilidades.empate)}%`}
-                            ></div>
-                        </div>
-                    </div>
-
-                    <div class="probabilidad-item">
-                        <div class="probabilidad-info">
-                            <span>Victoria visitante</span>
-                            <strong>{formatoPorcentaje(pronostico.probabilidades.victoriaVisitante)}</strong>
-                        </div>
-                        <div class="barra-fondo">
-                            <div
-                                class="barra-progreso barra-visitante"
-                                style={`width: ${porcentaje(pronostico.probabilidades.victoriaVisitante)}%`}
-                            ></div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- GOLES Y CÓRNERS -->
-            <div class="pronostico-grid">
-
-                <div class="pronostico-card">
-                    <h3><span>⚽</span> Goles esperados</h3>
-
-                    <div class="comparativa-valores">
-                        <div class="valor-equipo">
-                            <span>Local</span>
-                            <strong class="texto-local">
-                                {formatoNumero(pronostico.goles.local)}
-                            </strong>
-                        </div>
-
-                        <div class="valor-total">
-                            <span>Total estimado</span>
-                            <strong>{formatoNumero(pronostico.goles.total)}</strong>
-                        </div>
-
-                        <div class="valor-equipo">
-                            <span>Visitante</span>
-                            <strong class="texto-visitante">
-                                {formatoNumero(pronostico.goles.visitante)}
-                            </strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="pronostico-card">
-                <h3>Mercados de goles</h3>
-
-                <div class="mercados-grid">
-
-                    <div class="mercado-item">
-                        <span>Más de 1.5 goles</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.masDe15Goles)}</strong>
-                    </div>
-
-                    <div class="mercado-item">
-                        <span>Más de 2.5 goles</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.masDe25Goles)}</strong>
-                    </div>
-
-                    <div class="mercado-item">
-                        <span>Más de 3.5 goles</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.masDe35Goles)}</strong>
-                    </div>
-
-                    <div class="mercado-item">
-                        <span>Ambos equipos marcan · Sí</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.ambosMarcan)}</strong>
-                    </div>
-
-                    <div class="mercado-item">
-                        <span>Ambos equipos marcan · No</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.ambosNoMarcan)}</strong>
-                    </div>
-
-                </div>
-            </div>
-
-                
-
-            </div>
-
-            <!-- MERCADOS DE GOLES -->
-            <div class="pronostico-card">
-                    <h3><span>🚩</span> Córners esperados</h3>
-
-                    <div class="comparativa-valores">
-                        <div class="valor-equipo">
-                            <span>Local</span>
-                            <strong class="texto-local">
-                                {formatoNumero(pronostico.corners.local)}
-                            </strong>
-                        </div>
-
-                        <div class="valor-total">
-                            <span>Total estimado</span>
-                            <strong>{formatoNumero(pronostico.corners.total)}</strong>
-                        </div>
-
-                        <div class="valor-equipo">
-                            <span>Visitante</span>
-                            <strong class="texto-visitante">
-                                {formatoNumero(pronostico.corners.visitante)}
-                            </strong>
-                        </div>
-                    </div>
-                </div>
-            
-
-
-            <!-- MERCADOS DE CÓRNERS -->
-            <div class="pronostico-card">
-                <h3>Mercados de córners</h3>
-
-                <div class="mercados-grid">
-                    <div class="mercado-item">
-                        <span>Más de 7.5</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe75)}</strong>
-                    </div>
-
-                    <div class="mercado-item">
-                        <span>Más de 8.5</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe85)}</strong>
-                    </div>
-
-                    <div class="mercado-item">
-                        <span>Más de 9.5</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe95)}</strong>
-                    </div>
-
-                    <div class="mercado-item">
-                        <span>Más de 10.5</span>
-                        <strong>{formatoPorcentaje(pronostico.mercados.corners.masDe105)}</strong>
-                    </div>
-                </div>
-            </div>
-
-            <p class="pronostico-nota font-bold">
-                Las probabilidades son estimaciones estadísticas basadas en el historial disponible.
-                No garantizan el resultado del encuentro.
+            <p>
+                Probabilidades y estimaciones basadas en el historial
+                de ambos equipos y su comportamiento frente a rivales similares.
             </p>
+        </div>
 
-        </section>
-    {/if}
+        <div class="estado-pronostico">
+            <span></span>
+            Análisis disponible
+        </div>
+    </div>
+
+    <!-- EQUIPOS -->
+    <div class="pronostico-muestras grid grid-cols-2 gap-4">
+
+        <div class="muestra-equipo local flex flex-col items-center gap-2">
+            <span class="text-xl text-gray-400 font-semibold">
+                Local
+            </span>
+
+            <img
+                src={equipoLocalSeleccionado.escudo}
+                alt="Escudo equipo local"
+                class="w-14 h-14 object-contain drop-shadow-lg"
+            />
+        </div>
+
+        <div class="muestra-equipo visitante flex flex-col items-center gap-2">
+            <span class="text-xl text-gray-400 font-semibold">
+                Visitante
+            </span>
+
+            <img
+                src={equipoVisitanteSeleccionado.escudo}
+                alt="Escudo equipo visitante"
+                class="w-14 h-14 object-contain drop-shadow-lg"
+            />
+        </div>
+
+    </div>
+
+    <!-- PROBABILIDADES 1X2 -->
+    <div class="pronostico-card">
+        <h3>⚽ Probabilidades del resultado</h3>
+
+        <div class="resultado-probabilidades">
+
+            <div class="probabilidad-item">
+                <div class="probabilidad-info">
+                    <span>Victoria local</span>
+                    <strong>
+                        {formatoPorcentaje(pronostico.probabilidades.victoriaLocal)}
+                    </strong>
+                </div>
+
+                <div class="barra-fondo">
+                    <div
+                        class="barra-progreso barra-local"
+                        style={`width: ${porcentaje(pronostico.probabilidades.victoriaLocal)}%`}
+                    ></div>
+                </div>
+            </div>
+
+            <div class="probabilidad-item">
+                <div class="probabilidad-info">
+                    <span>Empate</span>
+                    <strong>
+                        {formatoPorcentaje(pronostico.probabilidades.empate)}
+                    </strong>
+                </div>
+
+                <div class="barra-fondo">
+                    <div
+                        class="barra-progreso barra-empate"
+                        style={`width: ${porcentaje(pronostico.probabilidades.empate)}%`}
+                    ></div>
+                </div>
+            </div>
+
+            <div class="probabilidad-item">
+                <div class="probabilidad-info">
+                    <span>Victoria visitante</span>
+                    <strong>
+                        {formatoPorcentaje(pronostico.probabilidades.victoriaVisitante)}
+                    </strong>
+                </div>
+
+                <div class="barra-fondo">
+                    <div
+                        class="barra-progreso barra-visitante"
+                        style={`width: ${porcentaje(pronostico.probabilidades.victoriaVisitante)}%`}
+                    ></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PROYECCIÓN DE GOLES -->
+    <div class="pronostico-card">
+        <h3>⚽ Proyección estadística de goles</h3>
+
+        <div class="comparativa-valores">
+
+            <div class="valor-equipo">
+                <span>Local</span>
+                <strong class="texto-local">
+                    {formatoNumero(pronostico.goles.local)}
+                </strong>
+            </div>
+
+            <div class="valor-total">
+                <span>Total estimado</span>
+                <strong>
+                    {formatoNumero(pronostico.goles.total)}
+                </strong>
+            </div>
+
+            <div class="valor-equipo">
+                <span>Visitante</span>
+                <strong class="texto-visitante">
+                    {formatoNumero(pronostico.goles.visitante)}
+                </strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PROBABILIDADES DE GOLES -->
+    <div class="pronostico-card">
+        <h3>📊 Probabilidades de goles</h3>
+
+        <div class="mercados-grid">
+
+            <div class="mercado-item">
+                <span>Más de 1.5 goles</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.masDe15Goles)}
+                </strong>
+            </div>
+
+            <div class="mercado-item">
+                <span>Más de 2.5 goles</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.masDe25Goles)}
+                </strong>
+            </div>
+
+            <div class="mercado-item">
+                <span>Más de 3.5 goles</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.masDe35Goles)}
+                </strong>
+            </div>
+
+            <div class="mercado-item">
+                <span>Ambos equipos marcan · Sí</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.ambosMarcan)}
+                </strong>
+            </div>
+
+            <div class="mercado-item">
+                <span>Ambos equipos marcan · No</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.ambosNoMarcan)}
+                </strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PROYECCIÓN DE CÓRNERS -->
+    <div class="pronostico-card">
+        <h3>🚩 Proyección estadística de córners</h3>
+
+        <div class="comparativa-valores">
+
+            <div class="valor-equipo">
+                <span>Local</span>
+                <strong class="texto-local">
+                    {formatoNumero(pronostico.corners.local)}
+                </strong>
+            </div>
+
+            <div class="valor-total">
+                <span>Total estimado</span>
+                <strong>
+                    {formatoNumero(pronostico.corners.total)}
+                </strong>
+            </div>
+
+            <div class="valor-equipo">
+                <span>Visitante</span>
+                <strong class="texto-visitante">
+                    {formatoNumero(pronostico.corners.visitante)}
+                </strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PROBABILIDADES DE CÓRNERS -->
+    <div class="pronostico-card">
+        <h3>📊 Probabilidades de córners</h3>
+
+        <div class="mercados-grid">
+
+            <div class="mercado-item">
+                <span>Más de 7.5 córners</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.corners.masDe75)}
+                </strong>
+            </div>
+
+            <div class="mercado-item">
+                <span>Más de 8.5 córners</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.corners.masDe85)}
+                </strong>
+            </div>
+
+            <div class="mercado-item">
+                <span>Más de 9.5 córners</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.corners.masDe95)}
+                </strong>
+            </div>
+
+            <div class="mercado-item">
+                <span>Más de 10.5 córners</span>
+                <strong>
+                    {formatoPorcentaje(pronostico.mercados.corners.masDe105)}
+                </strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- NOTA FINAL -->
+    <p class="pronostico-nota font-bold">
+        Las probabilidades son estimaciones estadísticas basadas
+        en el historial disponible. No garantizan el resultado del encuentro.
+    </p>
+
+</section>
+{/if}
+
     {#if prediccionesJugadores.length > 0}
     <section class="max-w-7xl mx-auto mt-16 space-y-8">
 
